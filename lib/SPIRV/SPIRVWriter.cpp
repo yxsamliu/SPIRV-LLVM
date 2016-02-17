@@ -64,12 +64,12 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Operator.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/Pass.h"
 #include "llvm/PassSupport.h"
-#include "llvm/PassManager.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Debug.h"
@@ -1504,7 +1504,7 @@ ModulePass *llvm::createLLVMToSPIRV(SPIRVModule *SMod) {
 }
 
 void
-addPassesForSPIRV(PassManager &PassMgr) {
+addPassesForSPIRV(legacy::PassManager &PassMgr) {
   if (SPIRVMemToReg)
     PassMgr.add(createPromoteMemoryToRegisterPass());
   PassMgr.add(createTransOCLMD());
@@ -1519,7 +1519,7 @@ addPassesForSPIRV(PassManager &PassMgr) {
 bool
 llvm::WriteSPIRV(Module *M, llvm::raw_ostream &OS, std::string &ErrMsg) {
   std::unique_ptr<SPIRVModule> BM(SPIRVModule::createSPIRVModule());
-  PassManager PassMgr;
+  legacy::PassManager PassMgr;
   addPassesForSPIRV(PassMgr);
   PassMgr.add(createOCLTypeToSPIRV());
   PassMgr.add(createLLVMToSPIRV(BM.get()));
@@ -1534,7 +1534,7 @@ llvm::WriteSPIRV(Module *M, llvm::raw_ostream &OS, std::string &ErrMsg) {
 bool
 llvm::RegularizeLLVMForSPIRV(Module *M, std::string &ErrMsg) {
   std::unique_ptr<SPIRVModule> BM(SPIRVModule::createSPIRVModule());
-  PassManager PassMgr;
+  legacy::PassManager PassMgr;
   addPassesForSPIRV(PassMgr);
   PassMgr.run(*M);
   return true;

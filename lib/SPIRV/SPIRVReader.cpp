@@ -54,11 +54,11 @@
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/DIBuilder.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/Metadata.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Operator.h"
 #include "llvm/IR/Type.h"
-#include "llvm/PassManager.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/Dwarf.h"
@@ -2312,7 +2312,7 @@ llvm::ReadSPIRV(LLVMContext &C, std::istream &IS, Module *&M,
     BM->getError(ErrMsg);
     Succeed = false;
   }
-  PassManager PassMgr;
+  legacy::PassManager PassMgr;
   PassMgr.add(createSPIRVToOCL20());
   PassMgr.add(createOCL20To12());
   PassMgr.run(*M);
