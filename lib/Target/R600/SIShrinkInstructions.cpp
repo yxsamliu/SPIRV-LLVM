@@ -10,6 +10,7 @@
 //
 
 #include "AMDGPU.h"
+#include "AMDGPUMCInstLower.h"
 #include "AMDGPUSubtarget.h"
 #include "SIInstrInfo.h"
 #include "llvm/ADT/Statistic.h"
@@ -126,30 +127,31 @@ static void foldImmediates(MachineInstr &MI, const SIInstrInfo *TII,
          TII->isVOPC(MI.getOpcode()));
 
   const SIRegisterInfo &TRI = TII->getRegisterInfo();
-  MachineOperand *Src0 = TII->getNamedOperand(MI, AMDGPU::OpName::src0);
+  int Src0Idx = AMDGPU::getNamedOperandIdx(MI.getOpcode(), AMDGPU::OpName::src0);
+  MachineOperand &Src0 = MI.getOperand(Src0Idx);
 
   // Only one literal constant is allowed per instruction, so if src0 is a
   // literal constant then we can't do any folding.
-  if (Src0->isImm() && TII->isLiteralConstant(*Src0))
+  if (Src0.isImm() &&
+      TII->isLiteralConstant(Src0, TII->getOpSize(MI, Src0Idx)))
     return;
-
 
   // Literal constants and SGPRs can only be used in Src0, so if Src0 is an
   // SGPR, we cannot commute the instruction, so we can't fold any literal
   // constants.
-  if (Src0->isReg() && !isVGPR(Src0, TRI, MRI))
+  if (Src0.isReg() && !isVGPR(&Src0, TRI, MRI))
     return;
 
   // Try to fold Src0
-  if (Src0->isReg()) {
-    unsigned Reg = Src0->getReg();
+  if (Src0.isReg()) {
+    unsigned Reg = Src0.getReg();
     MachineInstr *Def = MRI.getUniqueVRegDef(Reg);
     if (Def && Def->isMoveImmediate()) {
       MachineOperand &MovSrc = Def->getOperand(1);
       bool ConstantFolded = false;
 
       if (MovSrc.isImm() && isUInt<32>(MovSrc.getImm())) {
-        Src0->ChangeToImmediate(MovSrc.getImm());
+        Src0.ChangeToImmediate(MovSrc.getImm());
         ConstantFolded = true;
       }
       if (ConstantFolded) {
@@ -188,7 +190,7 @@ bool SIShrinkInstructions::runOnMachineFunction(MachineFunction &MF) {
         const MachineOperand &Src = MI.getOperand(1);
 
         if (Src.isImm()) {
-          if (isInt<16>(Src.getImm()) && !TII->isInlineConstant(Src))
+          if (isInt<16>(Src.getImm()) && !TII->isInlineConstant(Src, 4))
             MI.setDesc(TII->get(AMDGPU::S_MOVK_I32));
         }
 
@@ -206,12 +208,12 @@ bool SIShrinkInstructions::runOnMachineFunction(MachineFunction &MF) {
           continue;
       }
 
-      int Op32 = AMDGPU::getVOPe32(MI.getOpcode());
-
-      // Op32 could be -1 here if we started with an instruction that had a
+      // getVOPe32 could be -1 here if we started with an instruction that had
       // a 32-bit encoding and then commuted it to an instruction that did not.
-      if (Op32 == -1)
+      if (!TII->hasVALU32BitEncoding(MI.getOpcode()))
         continue;
+
+      int Op32 = AMDGPU::getVOPe32(MI.getOpcode());
 
       if (TII->isVOPC(Op32)) {
         unsigned DstReg = MI.getOperand(0).getReg();

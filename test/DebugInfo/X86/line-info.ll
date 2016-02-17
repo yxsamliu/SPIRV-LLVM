@@ -19,7 +19,7 @@ entry:
   %x.addr = alloca i32, align 4
   store i32 %x, i32* %x.addr, align 4
   call void @llvm.dbg.declare(metadata i32* %x.addr, metadata !14, metadata !{!"0x102"}), !dbg !15
-  %0 = load i32* %x.addr, align 4, !dbg !16
+  %0 = load i32, i32* %x.addr, align 4, !dbg !16
   %inc = add nsw i32 %0, 1, !dbg !16
   store i32 %inc, i32* %x.addr, align 4, !dbg !16
   ret i32 %inc, !dbg !16
@@ -53,8 +53,8 @@ attributes #1 = { nounwind readnone }
 !12 = !{!"0x15\00\000\000\000\000\000\000", i32 0, null, null, !13, null, null, null} ; [ DW_TAG_subroutine_type ] [line 0, size 0, align 0, offset 0] [from ]
 !13 = !{!9}
 !14 = !{!"0x101\00x\0016777217\000", !4, !6, !9} ; [ DW_TAG_arg_variable ] [x] [line 1]
-!15 = !{i32 1, i32 0, !4, null}
-!16 = !{i32 2, i32 0, !4, null}
-!17 = !{i32 3, i32 0, !18, null}
+!15 = !MDLocation(line: 1, scope: !4)
+!16 = !MDLocation(line: 2, scope: !4)
+!17 = !MDLocation(line: 3, scope: !18)
 !18 = !{!"0xb\000", !11, !10} ; [ DW_TAG_lexical_block ] [/usr/local/google/home/blaikie/dev/scratch/list0.c]
 !19 = !{i32 1, !"Debug Info Version", i32 2}

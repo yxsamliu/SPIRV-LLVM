@@ -562,6 +562,47 @@ class XForm_17<bits<6> opcode, bits<10> xo, dag OOL, dag IOL, string asmstr,
   let Inst{31}    = 0;
 }
 
+// Used for QPX
+class XForm_18<bits<6> opcode, bits<10> xo, dag OOL, dag IOL, string asmstr,
+               InstrItinClass itin, list<dag> pattern>
+         : I<opcode, OOL, IOL, asmstr, itin> {
+  bits<5> FRT;
+  bits<5> FRA;
+  bits<5> FRB;
+
+  let Pattern = pattern;
+  
+  let Inst{6-10}  = FRT;
+  let Inst{11-15} = FRA;
+  let Inst{16-20} = FRB;
+  let Inst{21-30} = xo;
+  let Inst{31}    = 0;
+}
+
+class XForm_19<bits<6> opcode, bits<10> xo, dag OOL, dag IOL, string asmstr,
+              InstrItinClass itin, list<dag> pattern> 
+  : XForm_18<opcode, xo, OOL, IOL, asmstr, itin, pattern> {
+  let FRA = 0;
+}
+
+class XForm_20<bits<6> opcode, bits<6> xo, dag OOL, dag IOL, string asmstr,
+               InstrItinClass itin, list<dag> pattern>
+         : I<opcode, OOL, IOL, asmstr, itin> {
+  bits<5> FRT;
+  bits<5> FRA;
+  bits<5> FRB;
+  bits<4> tttt;
+
+  let Pattern = pattern;
+  
+  let Inst{6-10}  = FRT;
+  let Inst{11-15} = FRA;
+  let Inst{16-20} = FRB;
+  let Inst{21-24} = tttt;
+  let Inst{25-30} = xo;
+  let Inst{31}    = 0;
+}
+
 class XForm_24<bits<6> opcode, bits<10> xo, dag OOL, dag IOL, string asmstr,
                InstrItinClass itin, list<dag> pattern> 
   : I<opcode, OOL, IOL, asmstr, itin> {
@@ -945,6 +986,25 @@ class XLForm_3<bits<6> opcode, bits<10> xo, dag OOL, dag IOL, string asmstr,
   let Inst{31}    = 0;
 }
 
+class XLForm_4<bits<6> opcode, bits<10> xo, dag OOL, dag IOL, string asmstr,
+               InstrItinClass itin>
+         : I<opcode, OOL, IOL, asmstr, itin> {
+  bits<3> BF;
+  bit W;
+  bits<4> U;
+  
+  bit RC = 0;
+  
+  let Inst{6-8}   = BF;
+  let Inst{9-10}  = 0;
+  let Inst{11-14} = 0;
+  let Inst{15}    = W;
+  let Inst{16-19} = U;
+  let Inst{20}    = 0;
+  let Inst{21-30} = xo;
+  let Inst{31}    = RC;
+}
+
 class XLForm_2_and_DSForm_1<bits<6> opcode1, bits<10> xo1, bit lk,
                             bits<6> opcode2, bits<2> xo2,
                             dag OOL, dag IOL, string asmstr,
@@ -1081,6 +1141,25 @@ class XFLForm<bits<6> opcode, bits<10> xo, dag OOL, dag IOL, string asmstr,
   let Inst{31}    = RC;
 }
 
+class XFLForm_1<bits<6> opcode, bits<10> xo, dag OOL, dag IOL, string asmstr,
+                InstrItinClass itin, list<dag>pattern>
+  : I<opcode, OOL, IOL, asmstr, itin> {
+  bit L;
+  bits<8> FLM;
+  bit W;
+  bits<5> FRB;
+
+  bit RC = 0;    // set by isDOT
+  let Pattern = pattern;
+
+  let Inst{6}     = L;
+  let Inst{7-14}  = FLM;
+  let Inst{15}    = W;
+  let Inst{16-20} = FRB;
+  let Inst{21-30} = xo;
+  let Inst{31}    = RC;
+}
+
 // 1.7.10 XS-Form - SRADI.
 class XSForm_1<bits<6> opcode, bits<9> xo, dag OOL, dag IOL, string asmstr,
                InstrItinClass itin, list<dag> pattern>
@@ -1175,6 +1254,14 @@ class AForm_4<bits<6> opcode, bits<5> xo, dag OOL, dag IOL, string asmstr,
   let Inst{21-25} = COND;
   let Inst{26-30} = xo;
   let Inst{31}    = 0;
+}
+
+// Used for QPX
+class AForm_4a<bits<6> opcode, bits<5> xo, dag OOL, dag IOL, string asmstr,
+              InstrItinClass itin, list<dag> pattern>
+  : AForm_1<opcode, xo, OOL, IOL, asmstr, itin, pattern> {
+  let FRA = 0;
+  let FRC = 0;
 }
 
 // 1.7.13 M-Form
@@ -1399,6 +1486,49 @@ class VXRForm_1<bits<10> xo, dag OOL, dag IOL, string asmstr,
   let Inst{16-20} = VB;
   let Inst{21}    = RC;
   let Inst{22-31} = xo;
+}
+
+// Z23-Form (used by QPX)
+class Z23Form_1<bits<6> opcode, bits<8> xo, dag OOL, dag IOL, string asmstr, 
+              InstrItinClass itin, list<dag> pattern>
+         : I<opcode, OOL, IOL, asmstr, itin> {
+  bits<5> FRT;
+  bits<5> FRA;
+  bits<5> FRB;
+  bits<2> idx;
+
+  let Pattern = pattern;
+
+  bit RC = 0;    // set by isDOT
+
+  let Inst{6-10}  = FRT;
+  let Inst{11-15} = FRA;
+  let Inst{16-20} = FRB;
+  let Inst{21-22} = idx;
+  let Inst{23-30} = xo;
+  let Inst{31}    = RC;
+}
+
+class Z23Form_2<bits<6> opcode, bits<8> xo, dag OOL, dag IOL, string asmstr,
+              InstrItinClass itin, list<dag> pattern>
+  : Z23Form_1<opcode, xo, OOL, IOL, asmstr, itin, pattern> {
+  let FRB = 0;
+}
+
+class Z23Form_3<bits<6> opcode, bits<8> xo, dag OOL, dag IOL, string asmstr, 
+              InstrItinClass itin, list<dag> pattern>
+         : I<opcode, OOL, IOL, asmstr, itin> {
+  bits<5> FRT;
+  bits<12> idx;
+
+  let Pattern = pattern;
+
+  bit RC = 0;    // set by isDOT
+
+  let Inst{6-10}  = FRT;
+  let Inst{11-22} = idx;
+  let Inst{23-30} = xo;
+  let Inst{31}    = RC;
 }
 
 //===----------------------------------------------------------------------===//

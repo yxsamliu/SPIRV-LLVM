@@ -27,7 +27,7 @@ entry:
   %i = alloca i32, align 4
   call void @llvm.dbg.declare(metadata i32* %i, metadata !11, metadata !{!"0x102"}), !dbg !14
   store i32 3, i32* %i, align 4, !dbg !14
-  %0 = load i32* %i, align 4, !dbg !14
+  %0 = load i32, i32* %i, align 4, !dbg !14
   %tobool = icmp ne i32 %0, 0, !dbg !14
   br i1 %tobool, label %if.then, label %if.end, !dbg !14
 
@@ -62,6 +62,6 @@ attributes #1 = { nounwind readnone }
 !11 = !{!"0x100\00i\002\000", !12, !5, !13} ; [ DW_TAG_auto_variable ] [i] [line 2]
 !12 = !{!"0xb\002\000\000", !1, !4} ; [ DW_TAG_lexical_block ] [/tmp/dbginfo/lexical_block.cpp]
 !13 = !{!"0x24\00int\000\0032\0032\000\000\005", null, null} ; [ DW_TAG_base_type ] [int] [line 0, size 32, align 32, offset 0, enc DW_ATE_signed]
-!14 = !{i32 2, i32 0, !12, null}
-!15 = !{i32 3, i32 0, !12, null}
-!16 = !{i32 4, i32 0, !4, null}
+!14 = !MDLocation(line: 2, scope: !12)
+!15 = !MDLocation(line: 3, scope: !12)
+!16 = !MDLocation(line: 4, scope: !4)

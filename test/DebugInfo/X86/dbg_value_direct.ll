@@ -51,7 +51,7 @@ entry:
   %17 = lshr i64 %16, 3
   %18 = add i64 %17, 2147450880
   %19 = inttoptr i64 %18 to i8*
-  %20 = load i8* %19
+  %20 = load i8, i8* %19
   %21 = icmp ne i8 %20, 0
   call void @llvm.dbg.declare(metadata i32* %3, metadata !23, metadata !28)
   br i1 %21, label %22, label %28
@@ -70,7 +70,7 @@ entry:
 
 ; <label>:28                                      ; preds = %22, %entry
   store i32 %0, i32* %3, align 4
-  call void @llvm.dbg.declare(metadata %struct.A* %agg.result, metadata !24, metadata !{!"0x102"}), !dbg !25
+  call void @llvm.dbg.declare(metadata %struct.A* %agg.result, metadata !24, metadata !{!"0x102\006"}), !dbg !25
   call void @_ZN1AC1Ev(%struct.A* %agg.result), !dbg !25
   store i64 1172321806, i64* %4, !dbg !26
   %29 = inttoptr i64 %10 to i32*, !dbg !26
@@ -91,8 +91,8 @@ declare void @_ZN1AC1Ev(%struct.A*) #2
 
 define internal void @asan.module_ctor()  "stack-protector-buffer-size"="1" {
   call void @__asan_init_v3()
-  %1 = load volatile i64* @__asan_mapping_offset
-  %2 = load volatile i64* @__asan_mapping_scale
+  %1 = load volatile i64, i64* @__asan_mapping_offset
+  %2 = load volatile i64, i64* @__asan_mapping_scale
   ret void
 }
 
@@ -171,8 +171,8 @@ attributes #2 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "n
 !21 = !{!"0x24\00int\000\0032\0032\000\000\005", null, null} ; [ DW_TAG_base_type ] [int] [line 0, size 32, align 32, offset 0, enc DW_ATE_signed]
 !22 = !{i32 2, !"Dwarf Version", i32 3}
 !23 = !{!"0x101\00\0016777222\000", !4, !5, !21} ; [ DW_TAG_arg_variable ] [line 6]
-!24 = !{!"0x100\00a\007\008192", !4, !5, !8} ; [ DW_TAG_auto_variable ] [a] [line 7]
-!25 = !{i32 7, i32 0, !4, null}
-!26 = !{i32 8, i32 0, !4, null}
+!24 = !{!"0x100\00a\007\000", !4, !5, !8} ; [ DW_TAG_auto_variable ] [a] [line 7]
+!25 = !MDLocation(line: 7, scope: !4)
+!26 = !MDLocation(line: 8, scope: !4)
 !27 = !{i32 1, !"Debug Info Version", i32 2}
 !28 = !{!"0x102\006"} ; [ DW_TAG_expression ] [DW_OP_deref]

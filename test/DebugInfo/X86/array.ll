@@ -39,10 +39,10 @@ define i32 @main(i32 %argc, i8** nocapture readnone %argv) #0 {
   %1 = bitcast [4 x i32]* %array to i8*, !dbg !36
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* %1, i8* bitcast ([4 x i32]* @main.array to i8*), i64 16, i32 16, i1 false), !dbg !36
   tail call void @llvm.dbg.value(metadata [4 x i32]* %array, i64 0, metadata !21, metadata !{!"0x102"}), !dbg !36
-  %2 = getelementptr inbounds [4 x i32]* %array, i64 0, i64 0, !dbg !37
+  %2 = getelementptr inbounds [4 x i32], [4 x i32]* %array, i64 0, i64 0, !dbg !37
   call void @f(i32* %2), !dbg !37
   tail call void @llvm.dbg.value(metadata [4 x i32]* %array, i64 0, metadata !21, metadata !{!"0x102"}), !dbg !36
-  %3 = load i32* %2, align 16, !dbg !38, !tbaa !30
+  %3 = load i32, i32* %2, align 16, !dbg !38, !tbaa !30
   ret i32 %3, !dbg !38
 }
 
@@ -88,14 +88,14 @@ attributes #2 = { nounwind readnone }
 !25 = !{i32 2, !"Dwarf Version", i32 2}
 !26 = !{i32 1, !"Debug Info Version", i32 2}
 !27 = !{!"clang version 3.5.0 "}
-!28 = !{i32 1, i32 0, !4, null}
-!29 = !{i32 2, i32 0, !4, null}
+!28 = !MDLocation(line: 1, scope: !4)
+!29 = !MDLocation(line: 2, scope: !4)
 !30 = !{!31, !31, i64 0}
 !31 = !{!"int", !32, i64 0}
 !32 = !{!"omnipotent char", !33, i64 0}
 !33 = !{!"Simple C/C++ TBAA"}
-!34 = !{i32 3, i32 0, !4, null}
-!35 = !{i32 5, i32 0, !12, null}
-!36 = !{i32 6, i32 0, !12, null}
-!37 = !{i32 7, i32 0, !12, null}
-!38 = !{i32 8, i32 0, !12, null}
+!34 = !MDLocation(line: 3, scope: !4)
+!35 = !MDLocation(line: 5, scope: !12)
+!36 = !MDLocation(line: 6, scope: !12)
+!37 = !MDLocation(line: 7, scope: !12)
+!38 = !MDLocation(line: 8, scope: !12)

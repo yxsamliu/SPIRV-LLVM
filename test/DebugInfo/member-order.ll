@@ -30,7 +30,7 @@ entry:
   %this.addr = alloca %struct.foo*, align 8
   store %struct.foo* %this, %struct.foo** %this.addr, align 8
   call void @llvm.dbg.declare(metadata %struct.foo** %this.addr, metadata !16, metadata !{!"0x102"}), !dbg !18
-  %this1 = load %struct.foo** %this.addr
+  %this1 = load %struct.foo*, %struct.foo** %this.addr
   ret void, !dbg !19
 }
 
@@ -61,6 +61,6 @@ attributes #1 = { nounwind readnone }
 !15 = !{i32 2, !"Dwarf Version", i32 4}
 !16 = !{!"0x101\00this\0016777216\001088", !14, null, !17} ; [ DW_TAG_arg_variable ] [this] [line 0]
 !17 = !{!"0xf\00\000\0064\0064\000\000", null, null, !"_ZTS3foo"} ; [ DW_TAG_pointer_type ] [line 0, size 64, align 64, offset 0] [from _ZTS3foo]
-!18 = !{i32 0, i32 0, !14, null}
-!19 = !{i32 7, i32 0, !14, null}
+!18 = !MDLocation(line: 0, scope: !14)
+!19 = !MDLocation(line: 7, scope: !14)
 !20 = !{i32 1, !"Debug Info Version", i32 2}

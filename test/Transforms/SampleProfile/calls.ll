@@ -30,8 +30,8 @@ entry:
   %y.addr = alloca i32, align 4
   store i32 %x, i32* %x.addr, align 4
   store i32 %y, i32* %y.addr, align 4
-  %0 = load i32* %x.addr, align 4, !dbg !11
-  %1 = load i32* %y.addr, align 4, !dbg !11
+  %0 = load i32, i32* %x.addr, align 4, !dbg !11
+  %1 = load i32, i32* %y.addr, align 4, !dbg !11
   %add = add nsw i32 %0, %1, !dbg !11
   ret i32 %add, !dbg !11
 }
@@ -47,7 +47,7 @@ entry:
   br label %while.cond, !dbg !13
 
 while.cond:                                       ; preds = %if.end, %entry
-  %0 = load i32* %i, align 4, !dbg !14
+  %0 = load i32, i32* %i, align 4, !dbg !14
   %inc = add nsw i32 %0, 1, !dbg !14
   store i32 %inc, i32* %i, align 4, !dbg !14
   %cmp = icmp slt i32 %0, 400000000, !dbg !14
@@ -56,7 +56,7 @@ while.cond:                                       ; preds = %if.end, %entry
 ; CHECK: edge while.cond -> while.end probability is 1 / 5392 = 0.018546%
 
 while.body:                                       ; preds = %while.cond
-  %1 = load i32* %i, align 4, !dbg !16
+  %1 = load i32, i32* %i, align 4, !dbg !16
   %cmp1 = icmp ne i32 %1, 100, !dbg !16
   br i1 %cmp1, label %if.then, label %if.else, !dbg !16
 ; Without discriminator information, the profiler used to think that
@@ -68,8 +68,8 @@ while.body:                                       ; preds = %while.cond
 
 
 if.then:                                          ; preds = %while.body
-  %2 = load i32* %i, align 4, !dbg !18
-  %3 = load i32* %s, align 4, !dbg !18
+  %2 = load i32, i32* %i, align 4, !dbg !18
+  %3 = load i32, i32* %s, align 4, !dbg !18
   %call = call i32 @_Z3sumii(i32 %2, i32 %3), !dbg !18
   store i32 %call, i32* %s, align 4, !dbg !18
   br label %if.end, !dbg !18
@@ -82,7 +82,7 @@ if.end:                                           ; preds = %if.else, %if.then
   br label %while.cond, !dbg !22
 
 while.end:                                        ; preds = %while.cond
-  %4 = load i32* %s, align 4, !dbg !24
+  %4 = load i32, i32* %s, align 4, !dbg !24
   %call2 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([11 x i8]* @.str, i32 0, i32 0), i32 %4), !dbg !24
   ret i32 0, !dbg !25
 }
@@ -103,18 +103,18 @@ declare i32 @printf(i8*, ...) #2
 !8 = !{i32 2, !"Dwarf Version", i32 4}
 !9 = !{i32 1, !"Debug Info Version", i32 2}
 !10 = !{!"clang version 3.5 "}
-!11 = !{i32 4, i32 0, !4, null}
-!12 = !{i32 8, i32 0, !7, null}
-!13 = !{i32 9, i32 0, !7, null}
-!14 = !{i32 9, i32 0, !15, null}
+!11 = !MDLocation(line: 4, scope: !4)
+!12 = !MDLocation(line: 8, scope: !7)
+!13 = !MDLocation(line: 9, scope: !7)
+!14 = !MDLocation(line: 9, scope: !15)
 !15 = !{!"0xb\001", !1, !7} ; [ DW_TAG_lexical_block ] [./calls.cc]
-!16 = !{i32 10, i32 0, !17, null}
+!16 = !MDLocation(line: 10, scope: !17)
 !17 = !{!"0xb\0010\000\000", !1, !7} ; [ DW_TAG_lexical_block ] [./calls.cc]
-!18 = !{i32 10, i32 0, !19, null}
+!18 = !MDLocation(line: 10, scope: !19)
 !19 = !{!"0xb\001", !1, !17} ; [ DW_TAG_lexical_block ] [./calls.cc]
-!20 = !{i32 10, i32 0, !21, null}
+!20 = !MDLocation(line: 10, scope: !21)
 !21 = !{!"0xb\002", !1, !17} ; [ DW_TAG_lexical_block ] [./calls.cc]
-!22 = !{i32 10, i32 0, !23, null}
+!22 = !MDLocation(line: 10, scope: !23)
 !23 = !{!"0xb\003", !1, !17} ; [ DW_TAG_lexical_block ] [./calls.cc]
-!24 = !{i32 11, i32 0, !7, null}
-!25 = !{i32 12, i32 0, !7, null}
+!24 = !MDLocation(line: 11, scope: !7)
+!25 = !MDLocation(line: 12, scope: !7)

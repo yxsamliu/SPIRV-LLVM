@@ -385,8 +385,7 @@ static bool isObjectStart(tgtok::TokKind K) {
 /// GetNewAnonymousName - Generate a unique anonymous name that can be used as
 /// an identifier.
 std::string TGParser::GetNewAnonymousName() {
-  unsigned Tmp = AnonCounter++; // MSVC2012 ICEs without this.
-  return "anonymous_" + utostr(Tmp);
+  return "anonymous_" + utostr(AnonCounter++);
 }
 
 /// ParseObjectName - If an object name is specified, return it.  Otherwise,
@@ -1676,7 +1675,7 @@ std::vector<Init*> TGParser::ParseValueList(Record *CurRec, Record *ArgsRec,
   unsigned int ArgN = 0;
   if (ArgsRec && !EltTy) {
     const std::vector<Init *> &TArgs = ArgsRec->getTemplateArgs();
-    if (!TArgs.size()) {
+    if (TArgs.empty()) {
       TokError("template argument provided to non-template class");
       return std::vector<Init*>();
     }

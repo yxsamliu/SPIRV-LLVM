@@ -38,7 +38,7 @@
 !10 = !{i32 1, !"Debug Info Version", i32 2}
 !11 = !{!"clang version 3.5 "}
 !12 = !{!"0x101\00count\0016777221\000", !4, !5, !8} ; [ DW_TAG_arg_variable ] [count] [line 5]
-!13 = !{i32 5, i32 0, !4, null}
+!13 = !MDLocation(line: 5, scope: !4)
 !14 = !{!"0x100\00vl\006\000", !4, !5, !15} ; [ DW_TAG_auto_variable ] [vl] [line 6]
 !15 = !{!"0x16\00va_list\0030\000\000\000\000", !16, null, !17} ; [ DW_TAG_typedef ] [va_list] [line 30, size 0, align 0, offset 0] [from __builtin_va_list]
 !16 = !{!"/linux-x86_64-high/gcc_4.7.2/dbg/llvm/bin/../lib/clang/3.5/include/stdarg.h", !"/tmp"}
@@ -47,18 +47,18 @@
 !19 = !{!20}
 !20 = !{!"0xd\00__ap\006\0032\0032\000\000", !1, !18, !21} ; [ DW_TAG_member ] [__ap] [line 6, size 32, align 32, offset 0] [from ]
 !21 = !{!"0xf\00\000\0032\0032\000\000", null, null, null} ; [ DW_TAG_pointer_type ] [line 0, size 32, align 32, offset 0] [from ]
-!22 = !{i32 6, i32 0, !4, null}
-!23 = !{i32 7, i32 0, !4, null}
+!22 = !MDLocation(line: 6, scope: !4)
+!23 = !MDLocation(line: 7, scope: !4)
 !24 = !{!"0x100\00sum\008\000", !4, !5, !8} ; [ DW_TAG_auto_variable ] [sum] [line 8]
-!25 = !{i32 8, i32 0, !4, null}
+!25 = !MDLocation(line: 8, scope: !4)
 !26 = !{!"0x100\00i\009\000", !27, !5, !8} ; [ DW_TAG_auto_variable ] [i] [line 9]
 !27 = !{!"0xb\009\000\000", !1, !4} ; [ DW_TAG_lexical_block ] [/tmp/var.c]
-!28 = !{i32 9, i32 0, !27, null}
-!29 = !{i32 10, i32 0, !30, null}
+!28 = !MDLocation(line: 9, scope: !27)
+!29 = !MDLocation(line: 10, scope: !30)
 !30 = !{!"0xb\009\000\001", !1, !27} ; [ DW_TAG_lexical_block ] [/tmp/var.c]
-!31 = !{i32 11, i32 0, !30, null}
-!32 = !{i32 12, i32 0, !4, null}
-!33 = !{i32 13, i32 0, !4, null}
+!31 = !MDLocation(line: 11, scope: !30)
+!32 = !MDLocation(line: 12, scope: !4)
+!33 = !MDLocation(line: 13, scope: !4)
 
 ; CHECK-FP-LABEL: sum
 ; CHECK-FP: .cfi_startproc
@@ -88,24 +88,22 @@
 ; CHECK-THUMB-FP: .cfi_startproc
 ; CHECK-THUMB-FP: sub    sp, #16
 ; CHECK-THUMB-FP: .cfi_def_cfa_offset 16
-; CHECK-THUMB-FP: push   {r4, r5, r7, lr}
-; CHECK-THUMB-FP: .cfi_def_cfa_offset 32
+; CHECK-THUMB-FP: push   {r4, lr}
+; CHECK-THUMB-FP: .cfi_def_cfa_offset 24
 ; CHECK-THUMB-FP: .cfi_offset lr, -20
-; CHECK-THUMB-FP: .cfi_offset r7, -24
-; CHECK-THUMB-FP: .cfi_offset r5, -28
-; CHECK-THUMB-FP: .cfi_offset r4, -32
+; CHECK-THUMB-FP: .cfi_offset r4, -24
 ; CHECK-THUMB-FP: sub    sp, #8
-; CHECK-THUMB-FP: .cfi_def_cfa_offset 40
+; CHECK-THUMB-FP: .cfi_def_cfa_offset 32
 
 ; CHECK-THUMB-FP-ELIM-LABEL: sum
 ; CHECK-THUMB-FP-ELIM: .cfi_startproc
 ; CHECK-THUMB-FP-ELIM: sub    sp, #16
 ; CHECK-THUMB-FP-ELIM: .cfi_def_cfa_offset 16
-; CHECK-THUMB-FP-ELIM: push   {r4, r5, r7, lr}
+; CHECK-THUMB-FP-ELIM: push   {r4, r6, r7, lr}
 ; CHECK-THUMB-FP-ELIM: .cfi_def_cfa_offset 32
 ; CHECK-THUMB-FP-ELIM: .cfi_offset lr, -20
 ; CHECK-THUMB-FP-ELIM: .cfi_offset r7, -24
-; CHECK-THUMB-FP-ELIM: .cfi_offset r5, -28
+; CHECK-THUMB-FP-ELIM: .cfi_offset r6, -28
 ; CHECK-THUMB-FP-ELIM: .cfi_offset r4, -32
 ; CHECK-THUMB-FP-ELIM: add    r7, sp, #8
 ; CHECK-THUMB-FP-ELIM: .cfi_def_cfa r7, 24
@@ -120,11 +118,11 @@ entry:
 
 for.body:                                         ; preds = %entry, %for.body
   %i.05 = phi i32 [ %inc, %for.body ], [ 0, %entry ]
-  %ap.cur = load i8** %vl, align 4
-  %ap.next = getelementptr i8* %ap.cur, i32 4
+  %ap.cur = load i8*, i8** %vl, align 4
+  %ap.next = getelementptr i8, i8* %ap.cur, i32 4
   store i8* %ap.next, i8** %vl, align 4
   %0 = bitcast i8* %ap.cur to i32*
-  %1 = load i32* %0, align 4
+  %1 = load i32, i32* %0, align 4
   %call = call i32 @foo(i32 %1) #1
   %inc = add nsw i32 %i.05, 1
   %exitcond = icmp eq i32 %inc, %count

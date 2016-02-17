@@ -33,7 +33,7 @@ define linkonce_odr i32 @_Z4funci(i32 %i) #0 {
   %1 = alloca i32, align 4
   store i32 %i, i32* %1, align 4
   call void @llvm.dbg.declare(metadata i32* %1, metadata !20, metadata !{!"0x102"}), !dbg !21
-  %2 = load i32* %1, align 4, !dbg !22
+  %2 = load i32, i32* %1, align 4, !dbg !22
   %3 = mul nsw i32 %2, 2, !dbg !22
   ret i32 %3, !dbg !22
 }
@@ -69,5 +69,5 @@ attributes #1 = { nounwind readnone }
 !18 = !{i32 1, !"Debug Info Version", i32 2}
 !19 = !{!"clang version 3.5.0 "}
 !20 = !{!"0x101\00i\0016777217\000", !4, !6, !9} ; [ DW_TAG_arg_variable ] [i] [line 1]
-!21 = !{i32 1, i32 0, !4, null}
-!22 = !{i32 2, i32 0, !4, null}
+!21 = !MDLocation(line: 1, scope: !4)
+!22 = !MDLocation(line: 2, scope: !4)

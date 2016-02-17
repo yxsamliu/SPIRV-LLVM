@@ -187,6 +187,13 @@ struct X86Operand : public MCParsedAsmOperand {
     return isImmSExti64i32Value(CE->getValue());
   }
 
+  bool isImmUnsignedi8() const {
+    if (!isImm()) return false;
+    const MCConstantExpr *CE = dyn_cast<MCConstantExpr>(getImm());
+    if (!CE) return false;
+    return isImmUnsignedi8Value(CE->getValue());
+  }
+
   bool isOffsetOf() const override {
     return OffsetOfLoc.getPointer();
   }
@@ -256,10 +263,6 @@ struct X86Operand : public MCParsedAsmOperand {
 
   bool isAbsMem16() const {
     return isAbsMem() && Mem.ModeSize == 16;
-  }
-
-  bool isAbsMem32() const {
-    return isAbsMem() && Mem.ModeSize != 16;
   }
 
   bool isSrcIdx() const {

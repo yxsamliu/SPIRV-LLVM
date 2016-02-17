@@ -47,10 +47,10 @@ define i32 @foo(%struct.S1* nocapture %sp, i32 %nums) nounwind optsize ssp {
 entry:
   tail call void @llvm.dbg.value(metadata %struct.S1* %sp, i64 0, metadata !9, metadata !{!"0x102"}), !dbg !20
   tail call void @llvm.dbg.value(metadata i32 %nums, i64 0, metadata !18, metadata !{!"0x102"}), !dbg !21
-  %tmp2 = getelementptr inbounds %struct.S1* %sp, i64 0, i32 1, !dbg !22
+  %tmp2 = getelementptr inbounds %struct.S1, %struct.S1* %sp, i64 0, i32 1, !dbg !22
   store i32 %nums, i32* %tmp2, align 4, !dbg !22
   %call = tail call float* @bar(i32 %nums) nounwind optsize, !dbg !27
-  %tmp5 = getelementptr inbounds %struct.S1* %sp, i64 0, i32 0, !dbg !27
+  %tmp5 = getelementptr inbounds %struct.S1, %struct.S1* %sp, i64 0, i32 0, !dbg !27
   store float* %call, float** %tmp5, align 8, !dbg !27
   %cmp = icmp ne float* %call, null, !dbg !29
   %cond = zext i1 %cmp to i32, !dbg !29
@@ -94,21 +94,21 @@ declare void @llvm.dbg.value(metadata, i64, metadata, metadata) nounwind readnon
 !17 = !{!"0xd\00nums\003\0032\0032\0064\000", !42, !1, !5} ; [ DW_TAG_member ]
 !18 = !{!"0x101\00nums\0033554439\000", !0, !1, !5, !32} ; [ DW_TAG_arg_variable ]
 !19 = !{!"0x34\00p\00p\00\0014\000\001", !2, !1, !11, %struct.S1* @p, null} ; [ DW_TAG_variable ]
-!20 = !{i32 7, i32 13, !0, null}
-!21 = !{i32 7, i32 21, !0, null}
-!22 = !{i32 9, i32 3, !23, null}
+!20 = !MDLocation(line: 7, column: 13, scope: !0)
+!21 = !MDLocation(line: 7, column: 21, scope: !0)
+!22 = !MDLocation(line: 9, column: 3, scope: !23)
 !23 = !{!"0xb\008\001\000", !1, !0} ; [ DW_TAG_lexical_block ]
-!27 = !{i32 10, i32 3, !23, null}
-!29 = !{i32 11, i32 3, !23, null}
+!27 = !MDLocation(line: 10, column: 3, scope: !23)
+!29 = !MDLocation(line: 11, column: 3, scope: !23)
 !30 = !{%struct.S1* @p}
-!31 = !{i32 7, i32 13, !0, !32}
-!32 = !{i32 16, i32 3, !33, null}
+!31 = !MDLocation(line: 7, column: 13, scope: !0, inlinedAt: !32)
+!32 = !MDLocation(line: 16, column: 3, scope: !33)
 !33 = !{!"0xb\0015\0015\001", !1, !6} ; [ DW_TAG_lexical_block ]
 !34 = !{i32 1}
-!35 = !{i32 7, i32 21, !0, !32}
-!36 = !{i32 9, i32 3, !23, !32}
-!37 = !{i32 10, i32 3, !23, !32}
-!38 = !{i32 17, i32 1, !33, null}
+!35 = !MDLocation(line: 7, column: 21, scope: !0, inlinedAt: !32)
+!36 = !MDLocation(line: 9, column: 3, scope: !23, inlinedAt: !32)
+!37 = !MDLocation(line: 10, column: 3, scope: !23, inlinedAt: !32)
+!38 = !MDLocation(line: 17, column: 1, scope: !33)
 !39 = !{!0, !6}
 !40 = !{!19}
 !41 = !{!9, !18}

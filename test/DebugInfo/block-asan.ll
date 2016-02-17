@@ -24,18 +24,18 @@ define void @foo() #0 {
 entry:
   %x = alloca %struct.__block_byref_x, align 8
   call void @llvm.dbg.declare(metadata %struct.__block_byref_x* %x, metadata !12, metadata !22), !dbg !23
-  %byref.isa = getelementptr inbounds %struct.__block_byref_x* %x, i32 0, i32 0, !dbg !24
+  %byref.isa = getelementptr inbounds %struct.__block_byref_x, %struct.__block_byref_x* %x, i32 0, i32 0, !dbg !24
   store i8* null, i8** %byref.isa, !dbg !24
-  %byref.forwarding = getelementptr inbounds %struct.__block_byref_x* %x, i32 0, i32 1, !dbg !24
+  %byref.forwarding = getelementptr inbounds %struct.__block_byref_x, %struct.__block_byref_x* %x, i32 0, i32 1, !dbg !24
   store %struct.__block_byref_x* %x, %struct.__block_byref_x** %byref.forwarding, !dbg !24
-  %byref.flags = getelementptr inbounds %struct.__block_byref_x* %x, i32 0, i32 2, !dbg !24
+  %byref.flags = getelementptr inbounds %struct.__block_byref_x, %struct.__block_byref_x* %x, i32 0, i32 2, !dbg !24
   store i32 0, i32* %byref.flags, !dbg !24
-  %byref.size = getelementptr inbounds %struct.__block_byref_x* %x, i32 0, i32 3, !dbg !24
+  %byref.size = getelementptr inbounds %struct.__block_byref_x, %struct.__block_byref_x* %x, i32 0, i32 3, !dbg !24
   store i32 32, i32* %byref.size, !dbg !24
-  %forwarding = getelementptr inbounds %struct.__block_byref_x* %x, i32 0, i32 1, !dbg !25
-  %0 = load %struct.__block_byref_x** %forwarding, !dbg !25
-  %x1 = getelementptr inbounds %struct.__block_byref_x* %0, i32 0, i32 4, !dbg !25
-  %1 = load i32* %x1, align 4, !dbg !25
+  %forwarding = getelementptr inbounds %struct.__block_byref_x, %struct.__block_byref_x* %x, i32 0, i32 1, !dbg !25
+  %0 = load %struct.__block_byref_x*, %struct.__block_byref_x** %forwarding, !dbg !25
+  %x1 = getelementptr inbounds %struct.__block_byref_x, %struct.__block_byref_x* %0, i32 0, i32 4, !dbg !25
+  %1 = load i32, i32* %x1, align 4, !dbg !25
   call void @bar(i32 %1), !dbg !25
   %2 = bitcast %struct.__block_byref_x* %x to i8*, !dbg !26
   call void @_Block_object_dispose(i8* %2, i32 8) #3, !dbg !26
@@ -81,7 +81,7 @@ attributes #3 = { nounwind }
 !20 = !{!"0xd\00__size\000\0032\0032\00160\000", !1, !5, !19} ; [ DW_TAG_member ] [__size] [line 0, size 32, align 32, offset 160] [from int]
 !21 = !{!"0xd\00x\000\0032\0032\00192\000", !1, !5, !19} ; [ DW_TAG_member ] [x] [line 0, size 32, align 32, offset 192] [from int]
 !22 = !{!"0x102\0034\008\006\0034\0024"} ; [ DW_TAG_expression ] [DW_OP_plus 8] [DW_OP_deref] [DW_OP_plus 24]
-!23 = !{i32 4, i32 15, !4, null}
-!24 = !{i32 4, i32 3, !4, null}
-!25 = !{i32 5, i32 3, !4, null}
-!26 = !{i32 6, i32 1, !4, null}
+!23 = !MDLocation(line: 4, column: 15, scope: !4)
+!24 = !MDLocation(line: 4, column: 3, scope: !4)
+!25 = !MDLocation(line: 5, column: 3, scope: !4)
+!26 = !MDLocation(line: 6, column: 1, scope: !4)

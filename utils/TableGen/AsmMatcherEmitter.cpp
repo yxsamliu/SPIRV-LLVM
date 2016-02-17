@@ -979,6 +979,7 @@ static std::string getEnumNameForToken(StringRef Str) {
     case '.': Res += "_DOT_"; break;
     case '<': Res += "_LT_"; break;
     case '>': Res += "_GT_"; break;
+    case '-': Res += "_MINUS_"; break;
     default:
       if ((*it >= 'A' && *it <= 'Z') ||
           (*it >= 'a' && *it <= 'z') ||
@@ -1446,8 +1447,9 @@ void AsmMatcherInfo::buildInfo() {
       II->buildAliasResultOperands();
   }
   if (!NewMatchables.empty())
-    std::move(NewMatchables.begin(), NewMatchables.end(),
-              std::back_inserter(Matchables));
+    Matchables.insert(Matchables.end(),
+                      std::make_move_iterator(NewMatchables.begin()),
+                      std::make_move_iterator(NewMatchables.end()));
 
   // Process token alias definitions and set up the associated superclass
   // information.
@@ -1848,6 +1850,7 @@ static void emitConvertFuncs(CodeGenTarget &Target, StringRef ClassName,
       case MatchableInfo::ResOperand::ImmOperand: {
         int64_t Val = OpInfo.ImmVal;
         std::string Ty = "imm_" + itostr(Val);
+        Ty = getEnumNameForToken(Ty);
         Signature += "__" + Ty;
 
         std::string Name = "CVT_" + Ty;
@@ -2651,7 +2654,7 @@ void AsmMatcherEmitter::run(raw_ostream &OS) {
      << " bool matchingInlineAsm,\n"
      << "                                unsigned VariantID = 0);\n";
 
-  if (Info.OperandMatchInfo.size()) {
+  if (!Info.OperandMatchInfo.empty()) {
     OS << "\n  enum OperandMatchResultTy {\n";
     OS << "    MatchOperand_Success,    // operand matched successfully\n";
     OS << "    MatchOperand_NoMatch,    // operand did not match\n";
@@ -2954,8 +2957,8 @@ void AsmMatcherEmitter::run(raw_ostream &OS) {
   OS << "      HadMatchOtherThanFeatures = true;\n";
   OS << "      uint64_t NewMissingFeatures = it->RequiredFeatures & "
         "~AvailableFeatures;\n";
-  OS << "      if (CountPopulation_64(NewMissingFeatures) <=\n"
-        "          CountPopulation_64(MissingFeatures))\n";
+  OS << "      if (countPopulation(NewMissingFeatures) <=\n"
+        "          countPopulation(MissingFeatures))\n";
   OS << "        MissingFeatures = NewMissingFeatures;\n";
   OS << "      continue;\n";
   OS << "    }\n";
@@ -3009,7 +3012,7 @@ void AsmMatcherEmitter::run(raw_ostream &OS) {
   OS << "  return Match_MissingFeature;\n";
   OS << "}\n\n";
 
-  if (Info.OperandMatchInfo.size())
+  if (!Info.OperandMatchInfo.empty())
     emitCustomOperandParsing(OS, Target, Info, ClassName, StringTable,
                              MaxMnemonicIndex);
 

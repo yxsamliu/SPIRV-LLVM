@@ -15,6 +15,8 @@
 #include "llvm/Config/config.h" // plugin-api.h requires HAVE_STDINT_H
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/StringSet.h"
+#include "llvm/Analysis/TargetLibraryInfo.h"
+#include "llvm/Analysis/TargetTransformInfo.h"
 #include "llvm/Bitcode/ReaderWriter.h"
 #include "llvm/CodeGen/Analysis.h"
 #include "llvm/CodeGen/CommandFlags.h"
@@ -22,19 +24,18 @@
 #include "llvm/IR/DiagnosticInfo.h"
 #include "llvm/IR/DiagnosticPrinter.h"
 #include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/Linker/Linker.h"
 #include "llvm/MC/SubtargetFeature.h"
 #include "llvm/Object/IRObjectFile.h"
-#include "llvm/PassManager.h"
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/Host.h"
 #include "llvm/Support/ManagedStatic.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/Support/TargetSelect.h"
-#include "llvm/Target/TargetLibraryInfo.h"
 #include "llvm/Transforms/IPO.h"
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
 #include "llvm/Transforms/Utils/GlobalStatus.h"
@@ -559,11 +560,9 @@ static void freeSymName(ld_plugin_symbol &Sym) {
 }
 
 static std::unique_ptr<Module>
-getModuleForFile(LLVMContext &Context, claimed_file &F, raw_fd_ostream *ApiFile,
+getModuleForFile(LLVMContext &Context, claimed_file &F,
+                 off_t Filesize, raw_fd_ostream *ApiFile,
                  StringSet<> &Internalize, StringSet<> &Maybe) {
-  ld_plugin_input_file File;
-  if (get_input_file(F.handle, &File) != LDPS_OK)
-    message(LDPL_FATAL, "Failed to get file information");
 
   if (get_symbols(F.handle, F.syms.size(), &F.syms[0]) != LDPS_OK)
     message(LDPL_FATAL, "Failed to get symbol information");
@@ -572,16 +571,13 @@ getModuleForFile(LLVMContext &Context, claimed_file &F, raw_fd_ostream *ApiFile,
   if (get_view(F.handle, &View) != LDPS_OK)
     message(LDPL_FATAL, "Failed to get a view of file");
 
-  MemoryBufferRef BufferRef(StringRef((const char *)View, File.filesize), "");
+  MemoryBufferRef BufferRef(StringRef((const char *)View, Filesize), "");
   ErrorOr<std::unique_ptr<object::IRObjectFile>> ObjOrErr =
       object::IRObjectFile::create(BufferRef, Context);
 
   if (std::error_code EC = ObjOrErr.getError())
     message(LDPL_FATAL, "Could not read bitcode from file : %s",
             EC.message().c_str());
-
-  if (release_input_file(F.handle) != LDPS_OK)
-    message(LDPL_FATAL, "Failed to release file information");
 
   object::IRObjectFile &Obj = **ObjOrErr;
 
@@ -633,8 +629,10 @@ getModuleForFile(LLVMContext &Context, claimed_file &F, raw_fd_ostream *ApiFile,
       break;
 
     case LDPR_UNDEF:
-      assert(GV->hasComdat());
-      Drop.insert(GV);
+      if (!GV->isDeclarationForLinker()) {
+        assert(GV->hasComdat());
+        Drop.insert(GV);
+      }
       break;
 
     case LDPR_PREVAILING_DEF_IRONLY: {
@@ -695,15 +693,21 @@ getModuleForFile(LLVMContext &Context, claimed_file &F, raw_fd_ostream *ApiFile,
 }
 
 static void runLTOPasses(Module &M, TargetMachine &TM) {
-  PassManager passes;
+  if (const DataLayout *DL = TM.getDataLayout())
+    M.setDataLayout(DL);
+
+  legacy::PassManager passes;
+  passes.add(new DataLayoutPass());
+  passes.add(createTargetTransformInfoWrapperPass(TM.getTargetIRAnalysis()));
+
   PassManagerBuilder PMB;
-  PMB.LibraryInfo = new TargetLibraryInfo(Triple(TM.getTargetTriple()));
+  PMB.LibraryInfo = new TargetLibraryInfoImpl(Triple(TM.getTargetTriple()));
   PMB.Inliner = createFunctionInliningPass();
   PMB.VerifyInput = true;
   PMB.VerifyOutput = true;
   PMB.LoopVectorize = true;
   PMB.SLPVectorize = true;
-  PMB.populateLTOPassManager(passes, &TM);
+  PMB.populateLTOPassManager(passes);
   passes.run(M);
 }
 
@@ -742,7 +746,7 @@ static void codegen(Module &M) {
   if (options::TheOutputType == options::OT_SAVE_TEMPS)
     saveBCFile(output_name + ".opt.bc", M);
 
-  PassManager CodeGenPasses;
+  legacy::PassManager CodeGenPasses;
   CodeGenPasses.add(new DataLayoutPass());
 
   SmallString<128> Filename;
@@ -796,8 +800,12 @@ static ld_plugin_status allSymbolsReadHook(raw_fd_ostream *ApiFile) {
   StringSet<> Internalize;
   StringSet<> Maybe;
   for (claimed_file &F : Modules) {
+    ld_plugin_input_file File;
+    if (get_input_file(F.handle, &File) != LDPS_OK)
+      message(LDPL_FATAL, "Failed to get file information");
     std::unique_ptr<Module> M =
-        getModuleForFile(Context, F, ApiFile, Internalize, Maybe);
+        getModuleForFile(Context, F, File.filesize, ApiFile,
+                         Internalize, Maybe);
     if (!options::triple.empty())
       M->setTargetTriple(options::triple.c_str());
     else if (M->getTargetTriple().empty()) {
@@ -806,6 +814,8 @@ static ld_plugin_status allSymbolsReadHook(raw_fd_ostream *ApiFile) {
 
     if (L.linkInModule(M.get()))
       message(LDPL_FATAL, "Failed to link module");
+    if (release_input_file(F.handle) != LDPS_OK)
+      message(LDPL_FATAL, "Failed to release file information");
   }
 
   for (const auto &Name : Internalize) {
@@ -862,8 +872,13 @@ static ld_plugin_status all_symbols_read_hook(void) {
   llvm_shutdown();
 
   if (options::TheOutputType == options::OT_BC_ONLY ||
-      options::TheOutputType == options::OT_DISABLE)
+      options::TheOutputType == options::OT_DISABLE) {
+    if (options::TheOutputType == options::OT_DISABLE)
+      // Remove the output file here since ld.bfd creates the output file
+      // early.
+      sys::fs::remove(output_name);
     exit(0);
+  }
 
   return Ret;
 }

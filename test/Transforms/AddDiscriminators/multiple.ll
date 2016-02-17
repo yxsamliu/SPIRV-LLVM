@@ -15,13 +15,13 @@ entry:
   %i.addr = alloca i32, align 4
   %x = alloca i32, align 4
   store i32 %i, i32* %i.addr, align 4
-  %0 = load i32* %i.addr, align 4, !dbg !10
+  %0 = load i32, i32* %i.addr, align 4, !dbg !10
   %cmp = icmp slt i32 %0, 10, !dbg !10
   br i1 %cmp, label %if.then, label %if.else, !dbg !10
 
 if.then:                                          ; preds = %entry
-  %1 = load i32* %i.addr, align 4, !dbg !10
-; CHECK:  %1 = load i32* %i.addr, align 4, !dbg !12
+  %1 = load i32, i32* %i.addr, align 4, !dbg !10
+; CHECK:  %1 = load i32, i32* %i.addr, align 4, !dbg !12
 
   store i32 %1, i32* %x, align 4, !dbg !10
 ; CHECK:  store i32 %1, i32* %x, align 4, !dbg !12
@@ -30,8 +30,8 @@ if.then:                                          ; preds = %entry
 ; CHECK:  br label %if.end, !dbg !12
 
 if.else:                                          ; preds = %entry
-  %2 = load i32* %i.addr, align 4, !dbg !10
-; CHECK:  %2 = load i32* %i.addr, align 4, !dbg !14
+  %2 = load i32, i32* %i.addr, align 4, !dbg !10
+; CHECK:  %2 = load i32, i32* %i.addr, align 4, !dbg !14
 
   %sub = sub nsw i32 0, %2, !dbg !10
 ; CHECK:  %sub = sub nsw i32 0, %2, !dbg !14
@@ -61,11 +61,11 @@ attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointe
 !7 = !{i32 2, !"Dwarf Version", i32 4}
 !8 = !{i32 1, !"Debug Info Version", i32 2}
 !9 = !{!"clang version 3.5 (trunk 199750) (llvm/trunk 199751)"}
-!10 = !{i32 3, i32 0, !11, null}
+!10 = !MDLocation(line: 3, scope: !11)
 !11 = !{!"0xb\003\000\000", !1, !4} ; [ DW_TAG_lexical_block ] [multiple.c]
-!12 = !{i32 4, i32 0, !4, null}
+!12 = !MDLocation(line: 4, scope: !4)
 
-; CHECK: !12 = !{i32 3, i32 0, !13, null}
+; CHECK: !12 = !MDLocation(line: 3, scope: !13)
 ; CHECK: !13 = !{!"0xb\001", !1, !11} ; [ DW_TAG_lexical_block ] [./multiple.c]
-; CHECK: !14 = !{i32 3, i32 0, !15, null}
+; CHECK: !14 = !MDLocation(line: 3, scope: !15)
 ; CHECK: !15 = !{!"0xb\002", !1, !11} ; [ DW_TAG_lexical_block ] [./multiple.c]

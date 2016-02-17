@@ -4,7 +4,7 @@ define weak_odr i32 @_ZN5ClassIiE3fooEv(%struct.Class* %this) align 2 {
 entry:
   %this.addr = alloca %struct.Class*, align 8
   store %struct.Class* %this, %struct.Class** %this.addr, align 8
-  %this1 = load %struct.Class** %this.addr
+  %this1 = load %struct.Class*, %struct.Class** %this.addr
   ret i32 0, !dbg !12
 }
 
@@ -24,4 +24,4 @@ entry:
 !9 = !{i32 2, !"Debug Info Version", i32 2}
 !10 = !{i32 1, !"PIC Level", i32 2}
 !11 = !{!"clang version 3.6.0 (trunk 224193) (llvm/trunk 224197)"}
-!12 = !{i32 2, i32 15, !4, null}
+!12 = !MDLocation(line: 2, column: 15, scope: !4)

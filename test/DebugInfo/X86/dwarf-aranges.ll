@@ -50,10 +50,10 @@ target triple = "x86_64-unknown-linux-gnu"
 
 define void @some_code() {
 entry:
-  %0 = load i32* @some_data, align 4, !dbg !14
-  %1 = load i32* @some_other, align 4, !dbg !14
+  %0 = load i32, i32* @some_data, align 4, !dbg !14
+  %1 = load i32, i32* @some_other, align 4, !dbg !14
   %add = add nsw i32 %0, %1, !dbg !14
-  %2 = load i32* @some_bss, align 4, !dbg !14
+  %2 = load i32, i32* @some_bss, align 4, !dbg !14
   %add1 = add nsw i32 %2, %add, !dbg !14
   store i32 %add1, i32* @some_bss, align 4, !dbg !14
   ret void, !dbg !15
@@ -76,6 +76,6 @@ entry:
 !11 = !{!"0x34\00some_other\00some_other\00\003\000\001", null, !5, !10, i32* @some_other, null} ; [ DW_TAG_variable ] [some_other] [line 3] [def]
 !12 = !{!"0x34\00some_bss\00some_bss\00\002\000\001", null, !5, !10, i32* @some_bss, null} ; [ DW_TAG_variable ] [some_bss] [line 2] [def]
 !13 = !{i32 2, !"Dwarf Version", i32 4}
-!14 = !{i32 7, i32 0, !4, null}
-!15 = !{i32 8, i32 0, !4, null}
+!14 = !MDLocation(line: 7, scope: !4)
+!15 = !MDLocation(line: 8, scope: !4)
 !16 = !{i32 1, !"Debug Info Version", i32 2}

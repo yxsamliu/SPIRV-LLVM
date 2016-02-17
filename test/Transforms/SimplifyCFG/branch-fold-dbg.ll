@@ -24,7 +24,7 @@ BB2:                                              ; preds = %BB1
 ;CHECK-NEXT: icmp eq
 
 BB3:                                              ; preds = %BB2
-  %6 = getelementptr inbounds [5 x %0]* @0, i32 0, i32 %0, !dbg !6
+  %6 = getelementptr inbounds [5 x %0], [5 x %0]* @0, i32 0, i32 %0, !dbg !6
   call void @llvm.dbg.value(metadata %0* %6, i64 0, metadata !7, metadata !{}), !dbg !12
   %7 = icmp eq %0* %6, null, !dbg !13
   br i1 %7, label %BB5, label %BB4, !dbg !13
@@ -46,14 +46,14 @@ declare void @llvm.dbg.value(metadata, i64, metadata, metadata) nounwind readnon
 !2 = !{!"0x11\0012\00clang (trunk 129006)\001\00\000\00\000", !15, !4, !4, null, null, null} ; [ DW_TAG_compile_unit ]
 !3 = !{!"0x15\00\000\000\000\000\000\000", !15, !1, null, !4, null, null, null} ; [ DW_TAG_subroutine_type ] [line 0, size 0, align 0, offset 0] [from ]
 !4 = !{null}
-!5 = !{i32 131, i32 2, !0, null}
-!6 = !{i32 134, i32 2, !0, null}
+!5 = !MDLocation(line: 131, column: 2, scope: !0)
+!6 = !MDLocation(line: 134, column: 2, scope: !0)
 !7 = !{!"0x100\00bar\00232\000", !8, !1, !9} ; [ DW_TAG_auto_variable ]
 !8 = !{!"0xb\00231\001\003", !15, !0} ; [ DW_TAG_lexical_block ]
 !9 = !{!"0xf\00\000\0032\0032\000\000", null, !2, !10} ; [ DW_TAG_pointer_type ]
 !10 = !{!"0x26\00\000\000\000\000\000", null, !2, !11} ; [ DW_TAG_const_type ]
 !11 = !{!"0x24\00unsigned int\000\0032\0032\000\000\007", null, !2} ; [ DW_TAG_base_type ]
-!12 = !{i32 232, i32 40, !8, null}
-!13 = !{i32 234, i32 2, !8, null}
-!14 = !{i32 274, i32 1, !8, null}
+!12 = !MDLocation(line: 232, column: 40, scope: !8)
+!13 = !MDLocation(line: 234, column: 2, scope: !8)
+!14 = !MDLocation(line: 274, column: 1, scope: !8)
 !15 = !{!"a.c", !"/private/tmp"}

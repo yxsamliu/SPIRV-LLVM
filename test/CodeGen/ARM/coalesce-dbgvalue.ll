@@ -28,7 +28,7 @@ for.cond1:                                        ; preds = %for.end9, %for.cond
 for.body2:                                        ; preds = %for.cond1
   store i32 %storemerge11, i32* @b, align 4, !dbg !26
   tail call void @llvm.dbg.value(metadata i32* null, i64 0, metadata !11, metadata !{!"0x102"}), !dbg !28
-  %0 = load i64* @a, align 8, !dbg !29
+  %0 = load i64, i64* @a, align 8, !dbg !29
   %xor = xor i64 %0, %e.1.ph, !dbg !29
   %conv3 = trunc i64 %xor to i32, !dbg !29
   tail call void @llvm.dbg.value(metadata i32 %conv3, i64 0, metadata !10, metadata !{!"0x102"}), !dbg !29
@@ -44,7 +44,7 @@ land.end:                                         ; preds = %land.rhs, %for.body
   %1 = phi i1 [ false, %for.body2 ], [ %tobool5, %land.rhs ]
   %land.ext = zext i1 %1 to i32
   %call6 = tail call i32 bitcast (i32 (...)* @fn2 to i32 (i32, i32*)*)(i32 %land.ext, i32* null) #3
-  %2 = load i32* @b, align 4, !dbg !26
+  %2 = load i32, i32* @b, align 4, !dbg !26
   %inc8 = add nsw i32 %2, 1, !dbg !26
   %phitmp = and i64 %xor, 4294967295, !dbg !26
   br label %for.cond1.outer, !dbg !26
@@ -52,7 +52,7 @@ land.end:                                         ; preds = %land.rhs, %for.body
 for.cond1.outer:                                  ; preds = %land.end, %for.cond1.preheader
   %storemerge11.ph = phi i32 [ %inc8, %land.end ], [ 0, %for.cond1.preheader ]
   %e.1.ph = phi i64 [ %phitmp, %land.end ], [ 0, %for.cond1.preheader ]
-  %3 = load i32* @d, align 4, !dbg !31
+  %3 = load i32, i32* @d, align 4, !dbg !31
   %tobool10 = icmp eq i32 %3, 0, !dbg !31
   br label %for.cond1
 
@@ -100,12 +100,12 @@ attributes #3 = { nounwind }
 !18 = !{!"0x34\00b\00b\00\002\000\001", null, !5, !8, i32* @b, null} ; [ DW_TAG_variable ] [b] [line 2] [def]
 !19 = !{!"0x34\00c\00c\00\003\000\001", null, !5, !8, i32* @c, null} ; [ DW_TAG_variable ] [c] [line 3] [def]
 !20 = !{!"0x34\00d\00d\00\004\000\001", null, !5, !8, i32* @d, null} ; [ DW_TAG_variable ] [d] [line 4] [def]
-!21 = !{i32 10, i32 0, !22, null}
+!21 = !MDLocation(line: 10, scope: !22)
 !22 = !{!"0xb\0010\000\000", !1, !4} ; [ DW_TAG_lexical_block ] [/d/b/pr16110.c]
-!26 = !{i32 12, i32 0, !13, null}
+!26 = !MDLocation(line: 12, scope: !13)
 !27 = !{i32* null}
-!28 = !{i32 13, i32 0, !12, null}
-!29 = !{i32 14, i32 0, !12, null}
-!31 = !{i32 16, i32 0, !4, null}
-!32 = !{i32 18, i32 0, !4, null}
+!28 = !MDLocation(line: 13, scope: !12)
+!29 = !MDLocation(line: 14, scope: !12)
+!31 = !MDLocation(line: 16, scope: !4)
+!32 = !MDLocation(line: 18, scope: !4)
 !33 = !{i32 1, !"Debug Info Version", i32 2}

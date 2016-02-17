@@ -19,10 +19,10 @@ entry:
   call void @llvm.dbg.declare(metadata i32* %__val.addr, metadata !7, metadata !{}), !dbg !18
   store i64 %__len, i64* %__len.addr, align 8
   call void @llvm.dbg.declare(metadata i64* %__len.addr, metadata !9, metadata !{}), !dbg !20
-  %tmp = load i8** %__dest.addr, align 8, !dbg !21
-  %tmp1 = load i32* %__val.addr, align 4, !dbg !21
-  %tmp2 = load i64* %__len.addr, align 8, !dbg !21
-  %tmp3 = load i8** %__dest.addr, align 8, !dbg !21
+  %tmp = load i8*, i8** %__dest.addr, align 8, !dbg !21
+  %tmp1 = load i32, i32* %__val.addr, align 4, !dbg !21
+  %tmp2 = load i64, i64* %__len.addr, align 8, !dbg !21
+  %tmp3 = load i8*, i8** %__dest.addr, align 8, !dbg !21
   %0 = call i64 @llvm.objectsize.i64.p0i8(i8* %tmp3, i1 false), !dbg !21
   %call = call i8* @foo(i8* %tmp, i32 %tmp1, i64 %tmp2, i64 %0), !dbg !21
   ret i8* %call, !dbg !21
@@ -44,10 +44,10 @@ entry:
 !10 = !{!"0x16\00size_t\0080\000\000\000\000", !27, !3, !11} ; [ DW_TAG_typedef ]
 !11 = !{!"0x16\00__darwin_size_t\0090\000\000\000\000", !27, !3, !12} ; [ DW_TAG_typedef ]
 !12 = !{!"0x24\00long unsigned int\000\0064\0064\000\000\007", null, !3} ; [ DW_TAG_base_type ]
-!16 = !{i32 78, i32 28, !1, null}
-!18 = !{i32 78, i32 40, !1, null}
-!20 = !{i32 78, i32 54, !1, null}
-!21 = !{i32 80, i32 3, !22, null}
+!16 = !MDLocation(line: 78, column: 28, scope: !1)
+!18 = !MDLocation(line: 78, column: 40, scope: !1)
+!20 = !MDLocation(line: 78, column: 54, scope: !1)
+!21 = !MDLocation(line: 80, column: 3, scope: !22)
 !22 = !{!"0xb\0080\003\007", !27, !23} ; [ DW_TAG_lexical_block ]
 !23 = !{!"0xb\0079\001\006", !27, !1} ; [ DW_TAG_lexical_block ]
 !24 = !{!1}

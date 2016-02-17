@@ -215,7 +215,7 @@ entry:
   %this.addr = alloca %struct.C*, align 8
   store %struct.C* %this, %struct.C** %this.addr, align 8
   call void @llvm.dbg.declare(metadata %struct.C** %this.addr, metadata !50, metadata !{!"0x102"}), !dbg !52
-  %this1 = load %struct.C** %this.addr
+  %this1 = load %struct.C*, %struct.C** %this.addr
   store i32 0, i32* @_ZN1C22static_member_variableE, align 4, !dbg !53
   ret void, !dbg !54
 }
@@ -226,7 +226,7 @@ declare void @llvm.dbg.declare(metadata, metadata, metadata) #1
 ; Function Attrs: nounwind uwtable
 define i32 @_ZN1C22static_member_functionEv() #0 align 2 {
 entry:
-  %0 = load i32* @_ZN1C22static_member_variableE, align 4, !dbg !55
+  %0 = load i32, i32* @_ZN1C22static_member_variableE, align 4, !dbg !55
   ret i32 %0, !dbg !55
 }
 
@@ -252,13 +252,13 @@ entry:
 ; Function Attrs: nounwind uwtable
 define i32 @_Z2f7v() #0 {
 entry:
-  %0 = load i32* @_ZN12_GLOBAL__N_11iE, align 4, !dbg !60
+  %0 = load i32, i32* @_ZN12_GLOBAL__N_11iE, align 4, !dbg !60
   %call = call i32* @_Z2f3v(), !dbg !60
-  %1 = load i32* %call, align 4, !dbg !60
+  %1 = load i32, i32* %call, align 4, !dbg !60
   %add = add nsw i32 %0, %1, !dbg !60
-  %2 = load i32* @_ZN12_GLOBAL__N_15inner1bE, align 4, !dbg !60
+  %2 = load i32, i32* @_ZN12_GLOBAL__N_15inner1bE, align 4, !dbg !60
   %add1 = add nsw i32 %add, %2, !dbg !60
-  %3 = load i32* @_ZN5outer12_GLOBAL__N_11cE, align 4, !dbg !60
+  %3 = load i32, i32* @_ZN5outer12_GLOBAL__N_11cE, align 4, !dbg !60
   %add2 = add nsw i32 %add1, %3, !dbg !60
   ret i32 %add2, !dbg !60
 }
@@ -322,12 +322,12 @@ attributes #1 = { nounwind readnone }
 !49 = !{!"clang version 3.5.0 "}
 !50 = !{!"0x101\00this\0016777216\001088", !20, null, !51} ; [ DW_TAG_arg_variable ] [this] [line 0]
 !51 = !{!"0xf\00\000\0064\0064\000\000", null, null, !"_ZTS1C"} ; [ DW_TAG_pointer_type ] [line 0, size 64, align 64, offset 0] [from _ZTS1C]
-!52 = !{i32 0, i32 0, !20, null}
-!53 = !{i32 10, i32 0, !20, null}
-!54 = !{i32 11, i32 0, !20, null}
-!55 = !{i32 14, i32 0, !21, null}
-!56 = !{i32 20, i32 0, !22, null}
-!57 = !{i32 25, i32 0, !24, null}
-!58 = !{i32 26, i32 0, !24, null}
-!59 = !{i32 39, i32 0, !27, null}
-!60 = !{i32 55, i32 0, !31, null}
+!52 = !MDLocation(line: 0, scope: !20)
+!53 = !MDLocation(line: 10, scope: !20)
+!54 = !MDLocation(line: 11, scope: !20)
+!55 = !MDLocation(line: 14, scope: !21)
+!56 = !MDLocation(line: 20, scope: !22)
+!57 = !MDLocation(line: 25, scope: !24)
+!58 = !MDLocation(line: 26, scope: !24)
+!59 = !MDLocation(line: 39, scope: !27)
+!60 = !MDLocation(line: 55, scope: !31)

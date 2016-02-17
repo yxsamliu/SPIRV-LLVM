@@ -32,10 +32,10 @@ declare i32 @test_function(%class.C*, i8 signext, i8 signext, i8 signext, ...)
 define void @test_without_debug() {
 entry:
   %c = alloca %class.C, align 1
-  %0 = load i8* @argc, align 1
+  %0 = load i8, i8* @argc, align 1
   %conv = sext i8 %0 to i32
   %call = call i32 (%class.C*, i8, i8, i8, ...)* @test_function(%class.C* %c, i8 signext 0, i8 signext %0, i8 signext 0, i32 %conv)
-  %1 = load i8* @argc, align 1
+  %1 = load i8, i8* @argc, align 1
   %call2 = call i32 (%class.C*, i8, i8, i8, ...)* @test_function(%class.C* %c, i8 signext 0, i8 signext %1, i8 signext 0, i32 %conv)
   ret void
 }
@@ -46,12 +46,12 @@ entry:
 define void @test_with_debug() {
 entry:
   %c = alloca %class.C, align 1
-  %0 = load i8* @argc, align 1
+  %0 = load i8, i8* @argc, align 1
   tail call void @llvm.dbg.value(metadata i8 %0, i64 0, metadata !19, metadata !29)
   %conv = sext i8 %0 to i32
   tail call void @llvm.dbg.value(metadata %class.C* %c, i64 0, metadata !18, metadata !29)
   %call = call i32 (%class.C*, i8, i8, i8, ...)* @test_function(%class.C* %c, i8 signext 0, i8 signext %0, i8 signext 0, i32 %conv)
-  %1 = load i8* @argc, align 1
+  %1 = load i8, i8* @argc, align 1
   call void @llvm.dbg.value(metadata %class.C* %c, i64 0, metadata !18, metadata !29)
   %call2 = call i32 (%class.C*, i8, i8, i8, ...)* @test_function(%class.C* %c, i8 signext 0, i8 signext %1, i8 signext 0, i32 %conv)
   ret void
@@ -86,5 +86,5 @@ declare void @llvm.dbg.value(metadata, i64, metadata, metadata)
 !21 = !{!"0x34\00argc\00argc\00\001\000\001", null, !14, !11, i8* @argc, null} ; [ DW_TAG_variable ] [argc] [line 1] [def]
 !22 = !{i32 2, !"Dwarf Version", i32 4}
 !23 = !{i32 2, !"Debug Info Version", i32 2}
-!25 = !{i32 8, i32 3, !13, null}
+!25 = !MDLocation(line: 8, column: 3, scope: !13)
 !29 = !{!"0x102"}               ; [ DW_TAG_expression ]

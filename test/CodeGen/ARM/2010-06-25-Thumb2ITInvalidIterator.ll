@@ -9,7 +9,7 @@ define void @x0(i8* nocapture %buf, i32 %nbytes) nounwind optsize {
 entry:
   tail call void @llvm.dbg.value(metadata i8* %buf, i64 0, metadata !0, metadata !{!"0x102"}), !dbg !15
   tail call void @llvm.dbg.value(metadata i32 %nbytes, i64 0, metadata !8, metadata !{!"0x102"}), !dbg !16
-  %tmp = load i32* @length, !dbg !17              ; <i32> [#uses=3]
+  %tmp = load i32, i32* @length, !dbg !17              ; <i32> [#uses=3]
   %cmp = icmp eq i32 %tmp, -1, !dbg !17           ; <i1> [#uses=1]
   %cmp.not = xor i1 %cmp, true                    ; <i1> [#uses=1]
   %cmp3 = icmp ult i32 %tmp, %nbytes, !dbg !17    ; <i1> [#uses=1]
@@ -21,7 +21,7 @@ entry:
 
 while.cond:                                       ; preds = %while.body, %entry
   %0 = phi i32 [ 0, %entry ], [ %inc, %while.body ] ; <i32> [#uses=3]
-  %buf.addr.0 = getelementptr i8* %buf, i32 %0    ; <i8*> [#uses=1]
+  %buf.addr.0 = getelementptr i8, i8* %buf, i32 %0    ; <i8*> [#uses=1]
   %cmp7 = icmp ult i32 %0, %nbytes.addr.0, !dbg !20 ; <i1> [#uses=1]
   br i1 %cmp7, label %land.rhs, label %while.end, !dbg !20
 
@@ -62,15 +62,15 @@ declare void @llvm.dbg.value(metadata, i64, metadata, metadata) nounwind readnon
 !12 = !{!"0x100\00c\007\000", !11, !2, !13} ; [ DW_TAG_auto_variable ]
 !13 = !{!"0x24\00int\000\0032\0032\000\000\005", !26, !2} ; [ DW_TAG_base_type ]
 !14 = !{!"0x34\00length\00length\00length\001\000\001", !2, !2, !13, i32* @length} ; [ DW_TAG_variable ]
-!15 = !{i32 4, i32 24, !1, null}
-!16 = !{i32 4, i32 43, !1, null}
-!17 = !{i32 9, i32 2, !11, null}
+!15 = !MDLocation(line: 4, column: 24, scope: !1)
+!16 = !MDLocation(line: 4, column: 43, scope: !1)
+!17 = !MDLocation(line: 9, column: 2, scope: !11)
 !18 = !{i32 0}
-!19 = !{i32 10, i32 2, !11, null}
-!20 = !{i32 11, i32 2, !11, null}
-!21 = !{i32 12, i32 3, !22, null}
+!19 = !MDLocation(line: 10, column: 2, scope: !11)
+!20 = !MDLocation(line: 11, column: 2, scope: !11)
+!21 = !MDLocation(line: 12, column: 3, scope: !22)
 !22 = !{!"0xb\0011\0045\000", !26, !11} ; [ DW_TAG_lexical_block ]
-!23 = !{i32 13, i32 3, !22, null}
-!24 = !{i32 14, i32 2, !22, null}
-!25 = !{i32 15, i32 1, !11, null}
+!23 = !MDLocation(line: 13, column: 3, scope: !22)
+!24 = !MDLocation(line: 14, column: 2, scope: !22)
+!25 = !MDLocation(line: 15, column: 1, scope: !11)
 !26 = !{!"t.c", !"/private/tmp"}

@@ -238,32 +238,32 @@ entry:
   %frombool = zext i1 %b to i8
   store i8 %frombool, i8* %b.addr, align 1
   call void @llvm.dbg.declare(metadata i8* %b.addr, metadata !66, metadata !62), !dbg !67
-  %0 = load i8* %b.addr, align 1, !dbg !68
+  %0 = load i8, i8* %b.addr, align 1, !dbg !68
   %tobool = trunc i8 %0 to i1, !dbg !68
   br i1 %tobool, label %if.then, label %if.end, !dbg !68
 
 if.then:                                          ; preds = %entry
-  %1 = load i32* @_ZN1A1B1iE, align 4, !dbg !69
+  %1 = load i32, i32* @_ZN1A1B1iE, align 4, !dbg !69
   store i32 %1, i32* %retval, !dbg !69
   br label %return, !dbg !69
 
 if.end:                                           ; preds = %entry
-  %2 = load i32* @_ZN1A1B1iE, align 4, !dbg !70
-  %3 = load i32* @_ZN1A1B1iE, align 4, !dbg !70
+  %2 = load i32, i32* @_ZN1A1B1iE, align 4, !dbg !70
+  %3 = load i32, i32* @_ZN1A1B1iE, align 4, !dbg !70
   %add = add nsw i32 %2, %3, !dbg !70
-  %4 = load i32* @_ZN1A1B1iE, align 4, !dbg !70
+  %4 = load i32, i32* @_ZN1A1B1iE, align 4, !dbg !70
   %add1 = add nsw i32 %add, %4, !dbg !70
   store i32 %add1, i32* %retval, !dbg !70
   br label %return, !dbg !70
 
 return:                                           ; preds = %if.end, %if.then
-  %5 = load i32* %retval, !dbg !71
+  %5 = load i32, i32* %retval, !dbg !71
   ret i32 %5, !dbg !71
 }
 
 define internal void @__cxx_global_var_init1() section "__TEXT,__StaticInit,regular,pure_instructions" {
 entry:
-  %0 = load i32* @_ZN1A1B1iE, align 4, !dbg !72
+  %0 = load i32, i32* @_ZN1A1B1iE, align 4, !dbg !72
   store i32 %0, i32* @_ZN1A1B7var_fwdE, align 4, !dbg !72
   ret void, !dbg !72
 }
@@ -348,19 +348,19 @@ attributes #1 = { nounwind readnone }
 !57 = !{i32 2, !"Dwarf Version", i32 2}
 !58 = !{i32 2, !"Debug Info Version", i32 2}
 !59 = !{!"clang version 3.6.0 "}
-!60 = !{i32 3, i32 12, !10, null}
+!60 = !MDLocation(line: 3, column: 12, scope: !10)
 !61 = !{!"0x101\00\0016777220\000", !14, !18, !13} ; [ DW_TAG_arg_variable ] [line 4]
 !62 = !{!"0x102"}               ; [ DW_TAG_expression ]
-!63 = !{i32 4, i32 12, !14, null}
-!64 = !{i32 4, i32 16, !14, null}
-!65 = !{i32 20, i32 12, !17, null}
+!63 = !MDLocation(line: 4, column: 12, scope: !14)
+!64 = !MDLocation(line: 4, column: 16, scope: !14)
+!65 = !MDLocation(line: 20, column: 12, scope: !17)
 !66 = !{!"0x101\00b\0016777237\000", !21, !18, !24} ; [ DW_TAG_arg_variable ] [b] [line 21]
-!67 = !{i32 21, i32 15, !21, null}
-!68 = !{i32 22, i32 7, !21, null}
-!69 = !{i32 24, i32 5, !38, null}
-!70 = !{i32 38, i32 3, !21, null}
-!71 = !{i32 39, i32 1, !21, null}
-!72 = !{i32 44, i32 15, !25, null}
-!73 = !{i32 47, i32 21, !26, null}
-!74 = !{i32 0, i32 0, !75, null}
+!67 = !MDLocation(line: 21, column: 15, scope: !21)
+!68 = !MDLocation(line: 22, column: 7, scope: !21)
+!69 = !MDLocation(line: 24, column: 5, scope: !38)
+!70 = !MDLocation(line: 38, column: 3, scope: !21)
+!71 = !MDLocation(line: 39, column: 1, scope: !21)
+!72 = !MDLocation(line: 44, column: 15, scope: !25)
+!73 = !MDLocation(line: 47, column: 21, scope: !26)
+!74 = !MDLocation(line: 0, scope: !75)
 !75 = !{!"0xb\000", !5, !27} ; [ DW_TAG_lexical_block ] [/tmp/foo.cpp]

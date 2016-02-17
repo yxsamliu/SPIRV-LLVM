@@ -51,8 +51,8 @@ define void @_Z2f1v() #0 {
 entry:
   %str2.i = alloca %struct.string, align 4
   %0 = bitcast %struct.string* %str2.i to i8*, !dbg !26
-  %1 = load %struct.string** @str, align 4
-  %mem = getelementptr inbounds %struct.string* %1, i32 0, i32 0
+  %1 = load %struct.string*, %struct.string** @str, align 4
+  %mem = getelementptr inbounds %struct.string, %struct.string* %1, i32 0, i32 0
   br label %for.body
 
 for.body:                                         ; preds = %for.body, %entry
@@ -63,10 +63,10 @@ for.body:                                         ; preds = %for.body, %entry
   call void @_Z4sinkPKv(i8* undef) #3, !dbg !29
   call void @_Z4sinkPKv(i8* %0) #3, !dbg !30
   call void @llvm.lifetime.end(i64 4, i8* %0), !dbg !31
-  %2 = load i32** %mem, align 4, !tbaa !32
+  %2 = load i32*, i32** %mem, align 4, !tbaa !32
   %3 = bitcast i32* %2 to i8*
   call void @_Z4sinkPKv(i8* %3) #3
-  %4 = load i8* @b, align 1, !tbaa !37, !range !39
+  %4 = load i8, i8* @b, align 1, !tbaa !37, !range !39
   %tobool = icmp ne i8 %4, 0
   %inc = add nsw i32 %iter.02, 1
   %cmp = icmp eq i32 %inc, 2
@@ -123,12 +123,12 @@ attributes #3 = { nounwind }
 !23 = !{i32 2, !"Dwarf Version", i32 4}
 !24 = !{i32 2, !"Debug Info Version", i32 2}
 !25 = !{!"clang version 3.5.0 "}
-!26 = !{i32 15, i32 0, !11, null}
+!26 = !MDLocation(line: 15, scope: !11)
 !27 = !{!"0x101\00lhs\0016777229\000", !17, !12, !20, !28} ; [ DW_TAG_arg_variable ] [lhs] [line 13]
-!28 = !{i32 16, i32 0, !11, null}
-!29 = !{i32 13, i32 0, !17, !28}
-!30 = !{i32 17, i32 0, !11, null}
-!31 = !{i32 18, i32 0, !11, null}
+!28 = !MDLocation(line: 16, scope: !11)
+!29 = !MDLocation(line: 13, scope: !17, inlinedAt: !28)
+!30 = !MDLocation(line: 17, scope: !11)
+!31 = !MDLocation(line: 18, scope: !11)
 !32 = !{!33, !34, i64 0}
 !33 = !{!"_ZTS6string", !34, i64 0}
 !34 = !{!"any pointer", !35, i64 0}

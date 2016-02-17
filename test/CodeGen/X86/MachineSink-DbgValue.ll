@@ -5,7 +5,7 @@ target triple = "x86_64-apple-macosx10.7.0"
 
 define i32 @foo(i32 %i, i32* nocapture %c) nounwind uwtable readonly ssp {
   tail call void @llvm.dbg.value(metadata i32 %i, i64 0, metadata !6, metadata !{!"0x102"}), !dbg !12
-  %ab = load i32* %c, align 1, !dbg !14
+  %ab = load i32, i32* %c, align 1, !dbg !14
   tail call void @llvm.dbg.value(metadata i32* %c, i64 0, metadata !7, metadata !{!"0x102"}), !dbg !13
   tail call void @llvm.dbg.value(metadata i32 %ab, i64 0, metadata !10, metadata !{!"0x102"}), !dbg !14
   %cd = icmp eq i32 %i, 42, !dbg !15
@@ -40,12 +40,12 @@ declare void @llvm.dbg.value(metadata, i64, metadata, metadata) nounwind readnon
 !9 = !{!"0x24\00char\000\008\008\000\000\006", null, !0} ; [ DW_TAG_base_type ]
 !10 = !{!"0x100\00a\003\000", !11, !2, !9} ; [ DW_TAG_auto_variable ]
 !11 = !{!"0xb\002\0025\000", !20, !1} ; [ DW_TAG_lexical_block ]
-!12 = !{i32 2, i32 13, !1, null}
-!13 = !{i32 2, i32 22, !1, null}
-!14 = !{i32 3, i32 14, !11, null}
-!15 = !{i32 4, i32 3, !11, null}
-!16 = !{i32 5, i32 5, !11, null}
-!17 = !{i32 7, i32 1, !11, null}
+!12 = !MDLocation(line: 2, column: 13, scope: !1)
+!13 = !MDLocation(line: 2, column: 22, scope: !1)
+!14 = !MDLocation(line: 3, column: 14, scope: !11)
+!15 = !MDLocation(line: 4, column: 3, scope: !11)
+!16 = !MDLocation(line: 5, column: 5, scope: !11)
+!17 = !MDLocation(line: 7, column: 1, scope: !11)
 !18 = !{!1}
 !19 = !{!6, !7, !10}
 !20 = !{!"a.c", !"/private/tmp"}

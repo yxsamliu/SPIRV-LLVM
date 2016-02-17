@@ -55,15 +55,15 @@ entry:
   %add = add i32 %IntParI1, 5, !dbg !68
   tail call void @llvm.dbg.value(metadata i32 %add, i64 0, metadata !27, metadata !{!"0x102"}), !dbg !68
   %idxprom = sext i32 %add to i64, !dbg !69
-  %arrayidx = getelementptr inbounds i32* %Array1Par, i64 %idxprom, !dbg !69
+  %arrayidx = getelementptr inbounds i32, i32* %Array1Par, i64 %idxprom, !dbg !69
   store i32 %IntParI2, i32* %arrayidx, align 4, !dbg !69
   %add3 = add nsw i32 %IntParI1, 6, !dbg !73
   %idxprom4 = sext i32 %add3 to i64, !dbg !73
-  %arrayidx5 = getelementptr inbounds i32* %Array1Par, i64 %idxprom4, !dbg !73
+  %arrayidx5 = getelementptr inbounds i32, i32* %Array1Par, i64 %idxprom4, !dbg !73
   store i32 %IntParI2, i32* %arrayidx5, align 4, !dbg !73
   %add6 = add nsw i32 %IntParI1, 35, !dbg !74
   %idxprom7 = sext i32 %add6 to i64, !dbg !74
-  %arrayidx8 = getelementptr inbounds i32* %Array1Par, i64 %idxprom7, !dbg !74
+  %arrayidx8 = getelementptr inbounds i32, i32* %Array1Par, i64 %idxprom7, !dbg !74
   store i32 %add, i32* %arrayidx8, align 4, !dbg !74
   tail call void @llvm.dbg.value(metadata i32 %add, i64 0, metadata !28, metadata !{!"0x102"}), !dbg !75
   br label %for.body, !dbg !75
@@ -71,7 +71,7 @@ entry:
 for.body:                                         ; preds = %entry, %for.body
   %indvars.iv = phi i64 [ %idxprom, %entry ], [ %indvars.iv.next, %for.body ]
   %IntIndex.046 = phi i32 [ %add, %entry ], [ %inc, %for.body ]
-  %arrayidx13 = getelementptr inbounds [51 x i32]* %Array2Par, i64 %idxprom, i64 %indvars.iv, !dbg !77
+  %arrayidx13 = getelementptr inbounds [51 x i32], [51 x i32]* %Array2Par, i64 %idxprom, i64 %indvars.iv, !dbg !77
   store i32 %add, i32* %arrayidx13, align 4, !dbg !77
   %inc = add nsw i32 %IntIndex.046, 1, !dbg !75
   tail call void @llvm.dbg.value(metadata i32 %inc, i64 0, metadata !28, metadata !{!"0x102"}), !dbg !75
@@ -82,14 +82,14 @@ for.body:                                         ; preds = %entry, %for.body
 for.end:                                          ; preds = %for.body
   %sub = add nsw i32 %IntParI1, 4, !dbg !78
   %idxprom14 = sext i32 %sub to i64, !dbg !78
-  %arrayidx17 = getelementptr inbounds [51 x i32]* %Array2Par, i64 %idxprom, i64 %idxprom14, !dbg !78
-  %0 = load i32* %arrayidx17, align 4, !dbg !78
+  %arrayidx17 = getelementptr inbounds [51 x i32], [51 x i32]* %Array2Par, i64 %idxprom, i64 %idxprom14, !dbg !78
+  %0 = load i32, i32* %arrayidx17, align 4, !dbg !78
   %inc18 = add nsw i32 %0, 1, !dbg !78
   store i32 %inc18, i32* %arrayidx17, align 4, !dbg !78
-  %1 = load i32* %arrayidx, align 4, !dbg !79
+  %1 = load i32, i32* %arrayidx, align 4, !dbg !79
   %add22 = add nsw i32 %IntParI1, 25, !dbg !79
   %idxprom23 = sext i32 %add22 to i64, !dbg !79
-  %arrayidx25 = getelementptr inbounds [51 x i32]* %Array2Par, i64 %idxprom23, i64 %idxprom, !dbg !79
+  %arrayidx25 = getelementptr inbounds [51 x i32], [51 x i32]* %Array2Par, i64 %idxprom23, i64 %idxprom, !dbg !79
   store i32 %1, i32* %arrayidx25, align 4, !dbg !79
   store i32 5, i32* @IntGlob, align 4, !dbg !80
   ret void, !dbg !81
@@ -167,20 +167,20 @@ attributes #1 = { nounwind readnone }
 !61 = !{!62}
 !62 = !{!"0x21\000\0031"}       ; [ DW_TAG_subrange_type ] [0, 30]
 !63 = !{!"0x34\00PtrGlbNext\00PtrGlbNext\00\00178\000\001", null, !3, !47, %struct.Record** @PtrGlbNext, null} ; [ DW_TAG_variable ] [PtrGlbNext] [line 178] [def]
-!64 = !{i32 181, i32 0, !12, null}
-!65 = !{i32 182, i32 0, !12, null}
-!66 = !{i32 183, i32 0, !12, null}
-!67 = !{i32 184, i32 0, !12, null}
-!68 = !{i32 189, i32 0, !12, null}
-!69 = !{i32 190, i32 0, !12, null}
-!73 = !{i32 191, i32 0, !12, null}
-!74 = !{i32 192, i32 0, !12, null}
-!75 = !{i32 193, i32 0, !76, null}
+!64 = !MDLocation(line: 181, scope: !12)
+!65 = !MDLocation(line: 182, scope: !12)
+!66 = !MDLocation(line: 183, scope: !12)
+!67 = !MDLocation(line: 184, scope: !12)
+!68 = !MDLocation(line: 189, scope: !12)
+!69 = !MDLocation(line: 190, scope: !12)
+!73 = !MDLocation(line: 191, scope: !12)
+!74 = !MDLocation(line: 192, scope: !12)
+!75 = !MDLocation(line: 193, scope: !76)
 !76 = !{!"0xb\00193\000\000", !82, !12} ; [ DW_TAG_lexical_block ] [/Users/manmanren/test-Nov/rdar_13183203/test2/dry.c]
-!77 = !{i32 194, i32 0, !76, null}
-!78 = !{i32 195, i32 0, !12, null}
-!79 = !{i32 196, i32 0, !12, null}
-!80 = !{i32 197, i32 0, !12, null}
-!81 = !{i32 198, i32 0, !12, null}
+!77 = !MDLocation(line: 194, scope: !76)
+!78 = !MDLocation(line: 195, scope: !12)
+!79 = !MDLocation(line: 196, scope: !12)
+!80 = !MDLocation(line: 197, scope: !12)
+!81 = !MDLocation(line: 198, scope: !12)
 !82 = !{!"dry.c", !"/Users/manmanren/test-Nov/rdar_13183203/test2"}
 !83 = !{i32 1, !"Debug Info Version", i32 2}

@@ -31,7 +31,7 @@ target triple = "thumbv7-apple-darwin10"
 define zeroext i8 @get1(i8 zeroext %a) nounwind optsize {
 entry:
   tail call void @llvm.dbg.value(metadata i8 %a, i64 0, metadata !10, metadata !{!"0x102"}), !dbg !30
-  %0 = load i8* @x1, align 4, !dbg !30
+  %0 = load i8, i8* @x1, align 4, !dbg !30
   tail call void @llvm.dbg.value(metadata i8 %0, i64 0, metadata !11, metadata !{!"0x102"}), !dbg !30
   store i8 %a, i8* @x1, align 4, !dbg !30
   ret i8 %0, !dbg !31
@@ -42,7 +42,7 @@ declare void @llvm.dbg.value(metadata, i64, metadata, metadata) nounwind readnon
 define zeroext i8 @get2(i8 zeroext %a) nounwind optsize {
 entry:
   tail call void @llvm.dbg.value(metadata i8 %a, i64 0, metadata !18, metadata !{!"0x102"}), !dbg !32
-  %0 = load i8* @x2, align 4, !dbg !32
+  %0 = load i8, i8* @x2, align 4, !dbg !32
   tail call void @llvm.dbg.value(metadata i8 %0, i64 0, metadata !19, metadata !{!"0x102"}), !dbg !32
   store i8 %a, i8* @x2, align 4, !dbg !32
   ret i8 %0, !dbg !33
@@ -51,7 +51,7 @@ entry:
 define zeroext i8 @get3(i8 zeroext %a) nounwind optsize {
 entry:
   tail call void @llvm.dbg.value(metadata i8 %a, i64 0, metadata !21, metadata !{!"0x102"}), !dbg !34
-  %0 = load i8* @x3, align 4, !dbg !34
+  %0 = load i8, i8* @x3, align 4, !dbg !34
   tail call void @llvm.dbg.value(metadata i8 %0, i64 0, metadata !22, metadata !{!"0x102"}), !dbg !34
   store i8 %a, i8* @x3, align 4, !dbg !34
   ret i8 %0, !dbg !35
@@ -60,7 +60,7 @@ entry:
 define zeroext i8 @get4(i8 zeroext %a) nounwind optsize {
 entry:
   tail call void @llvm.dbg.value(metadata i8 %a, i64 0, metadata !24, metadata !{!"0x102"}), !dbg !36
-  %0 = load i8* @x4, align 4, !dbg !36
+  %0 = load i8, i8* @x4, align 4, !dbg !36
   tail call void @llvm.dbg.value(metadata i8 %0, i64 0, metadata !25, metadata !{!"0x102"}), !dbg !36
   store i8 %a, i8* @x4, align 4, !dbg !36
   ret i8 %0, !dbg !37
@@ -69,7 +69,7 @@ entry:
 define zeroext i8 @get5(i8 zeroext %a) nounwind optsize {
 entry:
   tail call void @llvm.dbg.value(metadata i8 %a, i64 0, metadata !27, metadata !{!"0x102"}), !dbg !38
-  %0 = load i8* @x5, align 4, !dbg !38
+  %0 = load i8, i8* @x5, align 4, !dbg !38
   tail call void @llvm.dbg.value(metadata i8 %0, i64 0, metadata !28, metadata !{!"0x102"}), !dbg !38
   store i8 %a, i8* @x5, align 4, !dbg !38
   ret i8 %0, !dbg !39
@@ -108,16 +108,16 @@ entry:
 !27 = !{!"0x101\00a\0016\000", !9, !1, !5} ; [ DW_TAG_arg_variable ]
 !28 = !{!"0x100\00b\0016\000", !29, !1, !5} ; [ DW_TAG_auto_variable ]
 !29 = !{!"0xb\0016\000\004", !47, !9} ; [ DW_TAG_lexical_block ]
-!30 = !{i32 4, i32 0, !0, null}
-!31 = !{i32 4, i32 0, !12, null}
-!32 = !{i32 7, i32 0, !6, null}
-!33 = !{i32 7, i32 0, !20, null}
-!34 = !{i32 10, i32 0, !7, null}
-!35 = !{i32 10, i32 0, !23, null}
-!36 = !{i32 13, i32 0, !8, null}
-!37 = !{i32 13, i32 0, !26, null}
-!38 = !{i32 16, i32 0, !9, null}
-!39 = !{i32 16, i32 0, !29, null}
+!30 = !MDLocation(line: 4, scope: !0)
+!31 = !MDLocation(line: 4, scope: !12)
+!32 = !MDLocation(line: 7, scope: !6)
+!33 = !MDLocation(line: 7, scope: !20)
+!34 = !MDLocation(line: 10, scope: !7)
+!35 = !MDLocation(line: 10, scope: !23)
+!36 = !MDLocation(line: 13, scope: !8)
+!37 = !MDLocation(line: 13, scope: !26)
+!38 = !MDLocation(line: 16, scope: !9)
+!39 = !MDLocation(line: 16, scope: !29)
 !40 = !{!0, !6, !7, !8, !9}
 !41 = !{!13, !14, !15, !16, !17}
 !42 = !{!10, !11}

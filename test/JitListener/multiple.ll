@@ -55,7 +55,7 @@ entry:
   %a.addr = alloca i32, align 4
   store i32 %a, i32* %a.addr, align 4
   call void @llvm.dbg.declare(metadata i32* %a.addr, metadata !15, metadata !16), !dbg !17
-  %0 = load i32* %a.addr, align 4, !dbg !18
+  %0 = load i32, i32* %a.addr, align 4, !dbg !18
   ret i32 %0, !dbg !19
 }
 
@@ -69,7 +69,7 @@ entry:
   %a.addr = alloca i32, align 4
   store i32 %a, i32* %a.addr, align 4
   call void @llvm.dbg.declare(metadata i32* %a.addr, metadata !20, metadata !16), !dbg !21
-  %0 = load i32* %a.addr, align 4, !dbg !22
+  %0 = load i32, i32* %a.addr, align 4, !dbg !22
   %cmp = icmp eq i32 %0, 0, !dbg !22
   br i1 %cmp, label %if.then, label %if.end, !dbg !24
 
@@ -78,13 +78,13 @@ if.then:                                          ; preds = %entry
   br label %return, !dbg !25
 
 if.end:                                           ; preds = %entry
-  %1 = load i32* %a.addr, align 4, !dbg !27
+  %1 = load i32, i32* %a.addr, align 4, !dbg !27
   %div = sdiv i32 100, %1, !dbg !28
   store i32 %div, i32* %retval, !dbg !29
   br label %return, !dbg !29
 
 return:                                           ; preds = %if.end, %if.then
-  %2 = load i32* %retval, !dbg !30
+  %2 = load i32, i32* %retval, !dbg !30
   ret i32 %2, !dbg !30
 }
 
@@ -95,7 +95,7 @@ entry:
   %a.addr = alloca i32, align 4
   store i32 %a, i32* %a.addr, align 4
   call void @llvm.dbg.declare(metadata i32* %a.addr, metadata !31, metadata !16), !dbg !32
-  %0 = load i32* %a.addr, align 4, !dbg !33
+  %0 = load i32, i32* %a.addr, align 4, !dbg !33
   switch i32 %0, label %sw.default [
     i32 0, label %sw.bb
     i32 1, label %sw.bb1
@@ -114,7 +114,7 @@ sw.default:                                       ; preds = %entry
   br label %return, !dbg !38
 
 return:                                           ; preds = %sw.default, %sw.bb1, %sw.bb
-  %1 = load i32* %retval, !dbg !39
+  %1 = load i32, i32* %retval, !dbg !39
   ret i32 %1, !dbg !39
 }
 
@@ -142,26 +142,26 @@ attributes #1 = { nounwind readnone }
 !14 = !{!"clang version 3.6.0 (trunk)"}
 !15 = !{!"0x101\00a\0016777217\000", !4, !5, !8}  ; [ DW_TAG_arg_variable ] [a] [line 1]
 !16 = !{!"0x102"}                                 ; [ DW_TAG_expression ]
-!17 = !{i32 1, i32 13, !4, null}
-!18 = !{i32 2, i32 10, !4, null}
-!19 = !{i32 2, i32 3, !4, null}
+!17 = !MDLocation(line: 1, column: 13, scope: !4)
+!18 = !MDLocation(line: 2, column: 10, scope: !4)
+!19 = !MDLocation(line: 2, column: 3, scope: !4)
 !20 = !{!"0x101\00a\0016777221\000", !9, !5, !8}  ; [ DW_TAG_arg_variable ] [a] [line 5]
-!21 = !{i32 5, i32 13, !9, null}
-!22 = !{i32 6, i32 7, !23, null}
+!21 = !MDLocation(line: 5, column: 13, scope: !9)
+!22 = !MDLocation(line: 6, column: 7, scope: !23)
 !23 = !{!"0xb\006\007\000", !1, !9}               ; [ DW_TAG_lexical_block ] [F:\users\akaylor\llvm-s\llvm\test\JitListener/multiple.c]
-!24 = !{i32 6, i32 7, !9, null}
-!25 = !{i32 7, i32 5, !26, null}
+!24 = !MDLocation(line: 6, column: 7, scope: !9)
+!25 = !MDLocation(line: 7, column: 5, scope: !26)
 !26 = !{!"0xb\006\0015\001", !1, !23}             ; [ DW_TAG_lexical_block ] [F:\users\akaylor\llvm-s\llvm\test\JitListener/multiple.c]
-!27 = !{i32 9, i32 14, !9, null}
-!28 = !{i32 9, i32 10, !9, null}
-!29 = !{i32 9, i32 3, !9, null}
-!30 = !{i32 10, i32 1, !9, null}
+!27 = !MDLocation(line: 9, column: 14, scope: !9)
+!28 = !MDLocation(line: 9, column: 10, scope: !9)
+!29 = !MDLocation(line: 9, column: 3, scope: !9)
+!30 = !MDLocation(line: 10, column: 1, scope: !9)
 !31 = !{!"0x101\00a\0016777228\000", !10, !5, !8} ; [ DW_TAG_arg_variable ] [a] [line 12]
-!32 = !{i32 12, i32 15, !10, null}
-!33 = !{i32 13, i32 11, !10, null}
-!34 = !{i32 13, i32 3, !10, null}
-!35 = !{i32 15, i32 7, !36, null}
+!32 = !MDLocation(line: 12, column: 15, scope: !10)
+!33 = !MDLocation(line: 13, column: 11, scope: !10)
+!34 = !MDLocation(line: 13, column: 3, scope: !10)
+!35 = !MDLocation(line: 15, column: 7, scope: !36)
 !36 = !{!"0xb\0013\0014\002", !1, !10}            ; [ DW_TAG_lexical_block ] [F:\users\akaylor\llvm-s\llvm\test\JitListener/multiple.c]
-!37 = !{i32 17, i32 7, !36, null}
-!38 = !{i32 19, i32 7, !36, null}
-!39 = !{i32 21, i32 1, !10, null}
+!37 = !MDLocation(line: 17, column: 7, scope: !36)
+!38 = !MDLocation(line: 19, column: 7, scope: !36)
+!39 = !MDLocation(line: 21, column: 1, scope: !10)

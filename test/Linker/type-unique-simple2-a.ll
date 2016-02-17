@@ -49,7 +49,7 @@ entry:
   %this.addr = alloca %class.A*, align 8
   store %class.A* %this, %class.A** %this.addr, align 8
   call void @llvm.dbg.declare(metadata %class.A** %this.addr, metadata !39, metadata !{!"0x102"}), !dbg !41
-  %this1 = load %class.A** %this.addr
+  %this1 = load %class.A*, %class.A** %this.addr
   call void @_ZN1AC2Ev(%class.A* %this1) #1, !dbg !42
   ret void, !dbg !42
 }
@@ -65,7 +65,7 @@ entry:
   %this.addr = alloca %class.A*, align 8
   store %class.A* %this, %class.A** %this.addr, align 8
   call void @llvm.dbg.declare(metadata %class.A** %this.addr, metadata !44, metadata !{!"0x102"}), !dbg !45
-  %this1 = load %class.A** %this.addr
+  %this1 = load %class.A*, %class.A** %this.addr
   %0 = bitcast %class.A* %this1 to i8***, !dbg !46
   store i8** getelementptr inbounds ([4 x i8*]* @_ZTV1A, i64 0, i64 2), i8*** %0, !dbg !46
   ret void, !dbg !46
@@ -118,12 +118,12 @@ attributes #4 = { nounwind readnone }
 !35 = !{i32 2, !"Dwarf Version", i32 2}
 !36 = !{i32 1, !"Debug Info Version", i32 2}
 !37 = !{!"clang version 3.5 "}
-!38 = !{i32 3, i32 0, !27, null}
+!38 = !MDLocation(line: 3, scope: !27)
 !39 = !{!"0x101\00this\0016777216\001088", !31, null, !40} ; [ DW_TAG_arg_variable ] [this] [line 0]
 !40 = !{!"0xf\00\000\0064\0064\000\000", null, null, !"_ZTS1A"} ; [ DW_TAG_pointer_type ] [line 0, size 64, align 64, offset 0] [from _ZTS1A]
-!41 = !{i32 0, i32 0, !31, null}
-!42 = !{i32 2, i32 0, !43, null}
+!41 = !MDLocation(line: 0, scope: !31)
+!42 = !MDLocation(line: 2, scope: !43)
 !43 = !{!"0xb\000", !5, !31} ; [ DW_TAG_lexical_block ] [/./ab.h]
 !44 = !{!"0x101\00this\0016777216\001088", !34, null, !40} ; [ DW_TAG_arg_variable ] [this] [line 0]
-!45 = !{i32 0, i32 0, !34, null}
-!46 = !{i32 2, i32 0, !34, null}
+!45 = !MDLocation(line: 0, scope: !34)
+!46 = !MDLocation(line: 2, scope: !34)

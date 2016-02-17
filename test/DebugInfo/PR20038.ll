@@ -58,7 +58,7 @@ entry:
   %this.addr.i = alloca %struct.C*, align 8, !dbg !22
   %agg.tmp.ensured = alloca %struct.C, align 1
   %cleanup.cond = alloca i1
-  %0 = load i8* @b, align 1, !dbg !24
+  %0 = load i8, i8* @b, align 1, !dbg !24
   %tobool = trunc i8 %0 to i1, !dbg !24
   store i1 false, i1* %cleanup.cond
   br i1 %tobool, label %land.rhs, label %land.end, !dbg !24
@@ -69,16 +69,16 @@ land.rhs:                                         ; preds = %entry
 
 land.end:                                         ; preds = %land.rhs, %entry
   %1 = phi i1 [ false, %entry ], [ true, %land.rhs ]
-  %cleanup.is_active = load i1* %cleanup.cond, !dbg !27
+  %cleanup.is_active = load i1, i1* %cleanup.cond, !dbg !27
   br i1 %cleanup.is_active, label %cleanup.action, label %cleanup.done, !dbg !27
 
 cleanup.action:                                   ; preds = %land.end
   store %struct.C* %agg.tmp.ensured, %struct.C** %this.addr.i, align 8, !dbg !22
   call void @llvm.dbg.declare(metadata %struct.C** %this.addr.i, metadata !29, metadata !{!"0x102"}), !dbg !31
-  %this1.i = load %struct.C** %this.addr.i, !dbg !22
+  %this1.i = load %struct.C*, %struct.C** %this.addr.i, !dbg !22
   store %struct.C* %this1.i, %struct.C** %this.addr.i.i, align 8, !dbg !21
   call void @llvm.dbg.declare(metadata %struct.C** %this.addr.i.i, metadata !32, metadata !{!"0x102"}), !dbg !33
-  %this1.i.i = load %struct.C** %this.addr.i.i, !dbg !21
+  %this1.i.i = load %struct.C*, %struct.C** %this.addr.i.i, !dbg !21
   br label %cleanup.done, !dbg !22
 
 cleanup.done:                                     ; preds = %cleanup.action, %land.end
@@ -92,10 +92,10 @@ entry:
   %this.addr = alloca %struct.C*, align 8
   store %struct.C* %this, %struct.C** %this.addr, align 8
   call void @llvm.dbg.declare(metadata %struct.C** %this.addr, metadata !29, metadata !{!"0x102"}), !dbg !38
-  %this1 = load %struct.C** %this.addr
+  %this1 = load %struct.C*, %struct.C** %this.addr
   store %struct.C* %this1, %struct.C** %this.addr.i, align 8, !dbg !37
   call void @llvm.dbg.declare(metadata %struct.C** %this.addr.i, metadata !32, metadata !{!"0x102"}), !dbg !39
-  %this1.i = load %struct.C** %this.addr.i, !dbg !37
+  %this1.i = load %struct.C*, %struct.C** %this.addr.i, !dbg !37
   ret void, !dbg !37
 }
 
@@ -105,7 +105,7 @@ entry:
   %this.addr = alloca %struct.C*, align 8
   store %struct.C* %this, %struct.C** %this.addr, align 8
   call void @llvm.dbg.declare(metadata %struct.C** %this.addr, metadata !32, metadata !{!"0x102"}), !dbg !40
-  %this1 = load %struct.C** %this.addr
+  %this1 = load %struct.C*, %struct.C** %this.addr
   ret void, !dbg !41
 }
 
@@ -141,24 +141,24 @@ attributes #2 = { nounwind readnone }
 !18 = !{i32 2, !"Dwarf Version", i32 4}
 !19 = !{i32 2, !"Debug Info Version", i32 2}
 !20 = !{!"clang version 3.5.0 "}
-!21 = !{i32 6, i32 0, !17, !22}
-!22 = !{i32 5, i32 0, !23, null}
+!21 = !MDLocation(line: 6, scope: !17, inlinedAt: !22)
+!22 = !MDLocation(line: 5, scope: !23)
 !23 = !{!"0xb\005\000\003", !5, !12} ; [ DW_TAG_lexical_block ] [/tmp/dbginfo/PR20038.cpp]
-!24 = !{i32 5, i32 0, !12, null}
-!25 = !{i32 5, i32 0, !26, null}
+!24 = !MDLocation(line: 5, scope: !12)
+!25 = !MDLocation(line: 5, scope: !26)
 !26 = !{!"0xb\005\000\001", !5, !12} ; [ DW_TAG_lexical_block ] [/tmp/dbginfo/PR20038.cpp]
-!27 = !{i32 5, i32 0, !28, null}
+!27 = !MDLocation(line: 5, scope: !28)
 !28 = !{!"0xb\005\000\002", !5, !12} ; [ DW_TAG_lexical_block ] [/tmp/dbginfo/PR20038.cpp]
 !29 = !{!"0x101\00this\0016777216\001088", !17, null, !30} ; [ DW_TAG_arg_variable ] [this] [line 0]
 !30 = !{!"0xf\00\000\0064\0064\000\000", null, null, !"_ZTS1C"} ; [ DW_TAG_pointer_type ] [line 0, size 64, align 64, offset 0] [from _ZTS1C]
-!31 = !{i32 0, i32 0, !17, !22}
+!31 = !MDLocation(line: 0, scope: !17, inlinedAt: !22)
 !32 = !{!"0x101\00this\0016777216\001088", !16, null, !30} ; [ DW_TAG_arg_variable ] [this] [line 0]
-!33 = !{i32 0, i32 0, !16, !21}
-!34 = !{i32 5, i32 0, !35, null}
+!33 = !MDLocation(line: 0, scope: !16, inlinedAt: !21)
+!34 = !MDLocation(line: 5, scope: !35)
 !35 = !{!"0xb\005\000\005", !5, !36} ; [ DW_TAG_lexical_block ] [/tmp/dbginfo/PR20038.cpp]
 !36 = !{!"0xb\005\000\004", !5, !12} ; [ DW_TAG_lexical_block ] [/tmp/dbginfo/PR20038.cpp]
-!37 = !{i32 6, i32 0, !17, null}
-!38 = !{i32 0, i32 0, !17, null}
-!39 = !{i32 0, i32 0, !16, !37}
-!40 = !{i32 0, i32 0, !16, null}
-!41 = !{i32 6, i32 0, !16, null}
+!37 = !MDLocation(line: 6, scope: !17)
+!38 = !MDLocation(line: 0, scope: !17)
+!39 = !MDLocation(line: 0, scope: !16, inlinedAt: !37)
+!40 = !MDLocation(line: 0, scope: !16)
+!41 = !MDLocation(line: 6, scope: !16)

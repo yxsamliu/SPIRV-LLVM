@@ -94,11 +94,11 @@
 define void @_Z3fn6v() #0 {
 entry:
   tail call void @_Z3fn8v() #3, !dbg !31
-  %0 = load %struct.C** @x, align 8, !dbg !32, !tbaa !33
+  %0 = load %struct.C*, %struct.C** @x, align 8, !dbg !32, !tbaa !33
   tail call void @llvm.dbg.value(metadata %struct.C* %0, i64 0, metadata !37, metadata !{!"0x102"}) #3, !dbg !38
   tail call void @_Z3fn8v() #3, !dbg !39
-  %b.i = getelementptr inbounds %struct.C* %0, i64 0, i32 0, !dbg !40
-  %1 = load i32* %b.i, align 4, !dbg !40, !tbaa !42
+  %b.i = getelementptr inbounds %struct.C, %struct.C* %0, i64 0, i32 0, !dbg !40
+  %1 = load i32, i32* %b.i, align 4, !dbg !40, !tbaa !42
   %tobool.i = icmp eq i32 %1, 0, !dbg !40
   br i1 %tobool.i, label %_ZN1C5m_fn2Ev.exit, label %if.then.i, !dbg !40
 
@@ -118,8 +118,8 @@ define linkonce_odr void @_ZN1C5m_fn2Ev(%struct.C* nocapture readonly %this) #0 
 entry:
   tail call void @llvm.dbg.value(metadata %struct.C* %this, i64 0, metadata !24, metadata !{!"0x102"}), !dbg !49
   tail call void @_Z3fn8v() #3, !dbg !50
-  %b = getelementptr inbounds %struct.C* %this, i64 0, i32 0, !dbg !51
-  %0 = load i32* %b, align 4, !dbg !51, !tbaa !42
+  %b = getelementptr inbounds %struct.C, %struct.C* %this, i64 0, i32 0, !dbg !51
+  %0 = load i32, i32* %b, align 4, !dbg !51, !tbaa !42
   %tobool = icmp eq i32 %0, 0, !dbg !51
   br i1 %tobool, label %if.end, label %if.then, !dbg !51
 
@@ -129,11 +129,11 @@ if.then:                                          ; preds = %entry
 
 if.end:                                           ; preds = %entry, %if.then
   tail call void @_Z3fn8v() #3, !dbg !53
-  %1 = load %struct.C** @x, align 8, !dbg !56, !tbaa !33
+  %1 = load %struct.C*, %struct.C** @x, align 8, !dbg !56, !tbaa !33
   tail call void @llvm.dbg.value(metadata %struct.C* %1, i64 0, metadata !57, metadata !{!"0x102"}) #3, !dbg !58
   tail call void @_Z3fn8v() #3, !dbg !59
-  %b.i.i = getelementptr inbounds %struct.C* %1, i64 0, i32 0, !dbg !60
-  %2 = load i32* %b.i.i, align 4, !dbg !60, !tbaa !42
+  %b.i.i = getelementptr inbounds %struct.C, %struct.C* %1, i64 0, i32 0, !dbg !60
+  %2 = load i32, i32* %b.i.i, align 4, !dbg !60, !tbaa !42
   %tobool.i.i = icmp eq i32 %2, 0, !dbg !60
   br i1 %tobool.i.i, label %_Z3fn6v.exit, label %if.then.i.i, !dbg !60
 
@@ -153,11 +153,11 @@ entry:
 
 tailrecurse:                                      ; preds = %tailrecurse.backedge, %entry
   tail call void @_Z3fn8v() #3, !dbg !64
-  %0 = load %struct.C** @x, align 8, !dbg !66, !tbaa !33
+  %0 = load %struct.C*, %struct.C** @x, align 8, !dbg !66, !tbaa !33
   tail call void @llvm.dbg.value(metadata %struct.C* %0, i64 0, metadata !67, metadata !{!"0x102"}) #3, !dbg !68
   tail call void @_Z3fn8v() #3, !dbg !69
-  %b.i.i = getelementptr inbounds %struct.C* %0, i64 0, i32 0, !dbg !70
-  %1 = load i32* %b.i.i, align 4, !dbg !70, !tbaa !42
+  %b.i.i = getelementptr inbounds %struct.C, %struct.C* %0, i64 0, i32 0, !dbg !70
+  %1 = load i32, i32* %b.i.i, align 4, !dbg !70, !tbaa !42
   %tobool.i.i = icmp eq i32 %1, 0, !dbg !70
   br i1 %tobool.i.i, label %tailrecurse.backedge, label %if.then.i.i, !dbg !70
 
@@ -172,7 +172,7 @@ if.then.i.i:                                      ; preds = %tailrecurse
 ; Function Attrs: nounwind
 define void @_Z3fn4v() #0 {
 entry:
-  %0 = load %struct.C** @x, align 8, !dbg !72, !tbaa !33
+  %0 = load %struct.C*, %struct.C** @x, align 8, !dbg !72, !tbaa !33
   tail call void @_ZN1C5m_fn2Ev(%struct.C* %0), !dbg !72
   ret void, !dbg !72
 }
@@ -180,7 +180,7 @@ entry:
 ; Function Attrs: nounwind
 define void @_Z3fn5v() #0 {
 entry:
-  %0 = load %struct.C** @x, align 8, !dbg !73, !tbaa !33
+  %0 = load %struct.C*, %struct.C** @x, align 8, !dbg !73, !tbaa !33
   tail call void @_ZN1C5m_fn2Ev(%struct.C* %0), !dbg !73
   ret void, !dbg !73
 }
@@ -230,46 +230,46 @@ attributes #3 = { nounwind }
 !28 = !{i32 2, !"Dwarf Version", i32 4}
 !29 = !{i32 2, !"Debug Info Version", i32 2}
 !30 = !{!"clang version 3.6.0 "}
-!31 = !{i32 16, i32 0, !14, null}
-!32 = !{i32 17, i32 0, !14, null}
+!31 = !MDLocation(line: 16, scope: !14)
+!32 = !MDLocation(line: 17, scope: !14)
 !33 = !{!34, !34, i64 0}
 !34 = !{!"any pointer", !35, i64 0}
 !35 = !{!"omnipotent char", !36, i64 0}
 !36 = !{!"Simple C/C++ TBAA"}
 !37 = !{!"0x101\00this\0016777216\001088", !22, null, !25, !32} ; [ DW_TAG_arg_variable ] [this] [line 0]
-!38 = !{i32 0, i32 0, !22, !32}
-!39 = !{i32 8, i32 0, !22, !32}
-!40 = !{i32 9, i32 0, !41, !32}
+!38 = !MDLocation(line: 0, scope: !22, inlinedAt: !32)
+!39 = !MDLocation(line: 8, scope: !22, inlinedAt: !32)
+!40 = !MDLocation(line: 9, scope: !41, inlinedAt: !32)
 !41 = !{!"0xb\009\000\000", !5, !22} ; [ DW_TAG_lexical_block ] [/usr/local/google/home/blaikie/dev/scratch/missing_concrete_variable_on_darwin/reduce/recursive_inlining.cpp]
 !42 = !{!43, !44, i64 0}
 !43 = !{!"_ZTS1C", !44, i64 0}
 !44 = !{!"int", !35, i64 0}
-!45 = !{i32 9, i32 0, !46, !32}
+!45 = !MDLocation(line: 9, scope: !46, inlinedAt: !32)
 !46 = !{!"0xb\009\000\001", !5, !41} ; [ DW_TAG_lexical_block ] [/usr/local/google/home/blaikie/dev/scratch/missing_concrete_variable_on_darwin/reduce/recursive_inlining.cpp]
-!47 = !{i32 10, i32 0, !22, !32}
-!48 = !{i32 19, i32 0, !14, null}
-!49 = !{i32 0, i32 0, !22, null}
-!50 = !{i32 8, i32 0, !22, null}
-!51 = !{i32 9, i32 0, !41, null}
-!52 = !{i32 9, i32 0, !46, null}
-!53 = !{i32 16, i32 0, !14, !54}
-!54 = !{i32 20, i32 0, !18, !55}
-!55 = !{i32 10, i32 0, !22, null}
-!56 = !{i32 17, i32 0, !14, !54}
+!47 = !MDLocation(line: 10, scope: !22, inlinedAt: !32)
+!48 = !MDLocation(line: 19, scope: !14)
+!49 = !MDLocation(line: 0, scope: !22)
+!50 = !MDLocation(line: 8, scope: !22)
+!51 = !MDLocation(line: 9, scope: !41)
+!52 = !MDLocation(line: 9, scope: !46)
+!53 = !MDLocation(line: 16, scope: !14, inlinedAt: !54)
+!54 = !MDLocation(line: 20, scope: !18, inlinedAt: !55)
+!55 = !MDLocation(line: 10, scope: !22)
+!56 = !MDLocation(line: 17, scope: !14, inlinedAt: !54)
 !57 = !{!"0x101\00this\0016777216\001088", !22, null, !25, !56} ; [ DW_TAG_arg_variable ] [this] [line 0]
-!58 = !{i32 0, i32 0, !22, !56}
-!59 = !{i32 8, i32 0, !22, !56}
-!60 = !{i32 9, i32 0, !41, !56}
-!61 = !{i32 9, i32 0, !46, !56}
-!62 = !{i32 10, i32 0, !22, !56}
-!63 = !{i32 11, i32 0, !22, null}
-!64 = !{i32 16, i32 0, !14, !65}
-!65 = !{i32 20, i32 0, !18, null}
-!66 = !{i32 17, i32 0, !14, !65}
+!58 = !MDLocation(line: 0, scope: !22, inlinedAt: !56)
+!59 = !MDLocation(line: 8, scope: !22, inlinedAt: !56)
+!60 = !MDLocation(line: 9, scope: !41, inlinedAt: !56)
+!61 = !MDLocation(line: 9, scope: !46, inlinedAt: !56)
+!62 = !MDLocation(line: 10, scope: !22, inlinedAt: !56)
+!63 = !MDLocation(line: 11, scope: !22)
+!64 = !MDLocation(line: 16, scope: !14, inlinedAt: !65)
+!65 = !MDLocation(line: 20, scope: !18)
+!66 = !MDLocation(line: 17, scope: !14, inlinedAt: !65)
 !67 = !{!"0x101\00this\0016777216\001088", !22, null, !25, !66} ; [ DW_TAG_arg_variable ] [this] [line 0]
-!68 = !{i32 0, i32 0, !22, !66}
-!69 = !{i32 8, i32 0, !22, !66}
-!70 = !{i32 9, i32 0, !41, !66}
-!71 = !{i32 9, i32 0, !46, !66}
-!72 = !{i32 21, i32 0, !19, null}
-!73 = !{i32 22, i32 0, !20, null}
+!68 = !MDLocation(line: 0, scope: !22, inlinedAt: !66)
+!69 = !MDLocation(line: 8, scope: !22, inlinedAt: !66)
+!70 = !MDLocation(line: 9, scope: !41, inlinedAt: !66)
+!71 = !MDLocation(line: 9, scope: !46, inlinedAt: !66)
+!72 = !MDLocation(line: 21, scope: !19)
+!73 = !MDLocation(line: 22, scope: !20)

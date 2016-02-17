@@ -1,5 +1,10 @@
 ; RUN: llc -march=ppc64le -mcpu=pwr8 < %s | FileCheck %s
 ; RUN: llc -march=ppc64le -mcpu=pwr8 -O0 < %s | FileCheck %s
+; RUN: llc -march=ppc64le < %s | FileCheck %s
+; RUN: llc -march=ppc64le -O0 < %s | FileCheck %s
+
+; The second run of the test case is to ensure the behaviour is the same
+; without specifying -mcpu=pwr8 as that is now the baseline for ppc64le.
 
 target datalayout = "e-m:e-i64:64-n32:64"
 target triple = "powerpc64le-unknown-linux-gnu"
@@ -17,7 +22,7 @@ entry:
 ; CHECK-NEXT: .Ltmp[[TMP2:[0-9]+]]:
 ; CHECK-NEXT: .localentry use_toc, .Ltmp[[TMP2]]-.Ltmp[[TMP1]]
 ; CHECK-NEXT: %entry
-  %0 = load i64* @number64, align 8
+  %0 = load i64, i64* @number64, align 8
   %cmp = icmp eq i64 %0, %a
   %conv1 = zext i1 %cmp to i64
   ret i64 %conv1

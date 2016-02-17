@@ -19,12 +19,12 @@ entry:
   call void @llvm.dbg.declare(metadata %struct.test1* %tst, metadata !0, metadata !{!"0x102"}), !dbg !21
   call void @_ZN5test1C1Ev(%struct.test1* %tst) nounwind, !dbg !22
   store i32 0, i32* %0, align 4, !dbg !23
-  %1 = load i32* %0, align 4, !dbg !23            ; <i32> [#uses=1]
+  %1 = load i32, i32* %0, align 4, !dbg !23            ; <i32> [#uses=1]
   store i32 %1, i32* %retval, align 4, !dbg !23
   br label %return, !dbg !23
 
 return:                                           ; preds = %entry
-  %retval1 = load i32* %retval, !dbg !23          ; <i32> [#uses=1]
+  %retval1 = load i32, i32* %retval, !dbg !23          ; <i32> [#uses=1]
   ret i32 %retval1, !dbg !23
 }
 
@@ -34,8 +34,8 @@ entry:
   %"alloca point" = bitcast i32 0 to i32          ; <i32> [#uses=0]
   call void @llvm.dbg.declare(metadata %struct.test1** %this_addr, metadata !24, metadata !{!"0x102"}), !dbg !28
   store %struct.test1* %this, %struct.test1** %this_addr
-  %0 = load %struct.test1** %this_addr, align 8, !dbg !28 ; <%struct.test1*> [#uses=1]
-  %1 = getelementptr inbounds %struct.test1* %0, i32 0, i32 0, !dbg !28 ; <i32 (...)***> [#uses=1]
+  %0 = load %struct.test1*, %struct.test1** %this_addr, align 8, !dbg !28 ; <%struct.test1*> [#uses=1]
+  %1 = getelementptr inbounds %struct.test1, %struct.test1* %0, i32 0, i32 0, !dbg !28 ; <i32 (...)***> [#uses=1]
   store i32 (...)** getelementptr inbounds ([4 x i32 (...)*]* @_ZTV5test1, i64 0, i64 2), i32 (...)*** %1, align 8, !dbg !28
   br label %return, !dbg !28
 
@@ -51,8 +51,8 @@ entry:
   %"alloca point" = bitcast i32 0 to i32          ; <i32> [#uses=0]
   call void @llvm.dbg.declare(metadata %struct.test1** %this_addr, metadata !32, metadata !{!"0x102"}), !dbg !34
   store %struct.test1* %this, %struct.test1** %this_addr
-  %0 = load %struct.test1** %this_addr, align 8, !dbg !35 ; <%struct.test1*> [#uses=1]
-  %1 = getelementptr inbounds %struct.test1* %0, i32 0, i32 0, !dbg !35 ; <i32 (...)***> [#uses=1]
+  %0 = load %struct.test1*, %struct.test1** %this_addr, align 8, !dbg !35 ; <%struct.test1*> [#uses=1]
+  %1 = getelementptr inbounds %struct.test1, %struct.test1* %0, i32 0, i32 0, !dbg !35 ; <i32 (...)***> [#uses=1]
   store i32 (...)** getelementptr inbounds ([4 x i32 (...)*]* @_ZTV5test1, i64 0, i64 2), i32 (...)*** %1, align 8, !dbg !35
   br label %bb, !dbg !37
 
@@ -62,7 +62,7 @@ bb:                                               ; preds = %entry
   br i1 %toBool, label %bb1, label %bb2, !dbg !37
 
 bb1:                                              ; preds = %bb
-  %3 = load %struct.test1** %this_addr, align 8, !dbg !37 ; <%struct.test1*> [#uses=1]
+  %3 = load %struct.test1*, %struct.test1** %this_addr, align 8, !dbg !37 ; <%struct.test1*> [#uses=1]
   %4 = bitcast %struct.test1* %3 to i8*, !dbg !37 ; <i8*> [#uses=1]
   call void @_ZdlPv(i8* %4) nounwind, !dbg !37
   br label %bb2, !dbg !37
@@ -80,8 +80,8 @@ entry:
   %"alloca point" = bitcast i32 0 to i32          ; <i32> [#uses=0]
   call void @llvm.dbg.declare(metadata %struct.test1** %this_addr, metadata !38, metadata !{!"0x102"}), !dbg !40
   store %struct.test1* %this, %struct.test1** %this_addr
-  %0 = load %struct.test1** %this_addr, align 8, !dbg !41 ; <%struct.test1*> [#uses=1]
-  %1 = getelementptr inbounds %struct.test1* %0, i32 0, i32 0, !dbg !41 ; <i32 (...)***> [#uses=1]
+  %0 = load %struct.test1*, %struct.test1** %this_addr, align 8, !dbg !41 ; <%struct.test1*> [#uses=1]
+  %1 = getelementptr inbounds %struct.test1, %struct.test1* %0, i32 0, i32 0, !dbg !41 ; <i32 (...)***> [#uses=1]
   store i32 (...)** getelementptr inbounds ([4 x i32 (...)*]* @_ZTV5test1, i64 0, i64 2), i32 (...)*** %1, align 8, !dbg !41
   br label %bb, !dbg !43
 
@@ -91,7 +91,7 @@ bb:                                               ; preds = %entry
   br i1 %toBool, label %bb1, label %bb2, !dbg !43
 
 bb1:                                              ; preds = %bb
-  %3 = load %struct.test1** %this_addr, align 8, !dbg !43 ; <%struct.test1*> [#uses=1]
+  %3 = load %struct.test1*, %struct.test1** %this_addr, align 8, !dbg !43 ; <%struct.test1*> [#uses=1]
   %4 = bitcast %struct.test1* %3 to i8*, !dbg !43 ; <i8*> [#uses=1]
   call void @_ZdlPv(i8* %4) nounwind, !dbg !43
   br label %bb2, !dbg !43
@@ -126,29 +126,29 @@ declare void @_ZdlPv(i8*) nounwind
 !18 = !{!"0x2e\00~test1\00~test1\00\004\000\000\001\006\000\000\000", i32 0, !8, !19, !8, null, null, null, null} ; [ DW_TAG_subprogram ]
 !19 = !{!"0x15\00\000\000\000\000\000\000", !4, null, null, !20, null, null, null} ; [ DW_TAG_subroutine_type ] [line 0, size 0, align 0, offset 0] [from ]
 !20 = !{null, !17, !7}
-!21 = !{i32 11, i32 0, !1, null}
-!22 = !{i32 13, i32 0, !1, null}
-!23 = !{i32 14, i32 0, !1, null}
+!21 = !MDLocation(line: 11, scope: !1)
+!22 = !MDLocation(line: 13, scope: !1)
+!23 = !MDLocation(line: 14, scope: !1)
 !24 = !{!"0x101\00this\0013\000", !25, !4, !26} ; [ DW_TAG_arg_variable ]
 !25 = !{!"0x2e\00test1\00test1\00_ZN5test1C1Ev\001\000\001\000\006\000\000\000", i32 0, !4, !15, null, null, null, null, null} ; [ DW_TAG_subprogram ]
 !26 = !{!"0x26\00\000\0064\0064\000\0064", !4, null, !27} ; [ DW_TAG_const_type ]
 !27 = !{!"0xf\00\000\0064\0064\000\000", !4, null, !8} ; [ DW_TAG_pointer_type ]
-!28 = !{i32 1, i32 0, !25, null}
-!29 = !{i32 1, i32 0, !30, null}
+!28 = !MDLocation(line: 1, scope: !25)
+!29 = !MDLocation(line: 1, scope: !30)
 !30 = !{!"0xb\000\000\000", !44, !31} ; [ DW_TAG_lexical_block ]
 !31 = !{!"0xb\000\000\000", !44, !25} ; [ DW_TAG_lexical_block ]
 !32 = !{!"0x101\00this\004\000", !33, !4, !26} ; [ DW_TAG_arg_variable ]
 !33 = !{!"0x2e\00~test1\00~test1\00_ZN5test1D1Ev\004\000\001\001\006\000\000\000", i32 0, !8, !15, !8, null, null, null, null} ; [ DW_TAG_subprogram ]
-!34 = !{i32 4, i32 0, !33, null}
-!35 = !{i32 5, i32 0, !36, null}
+!34 = !MDLocation(line: 4, scope: !33)
+!35 = !MDLocation(line: 5, scope: !36)
 !36 = !{!"0xb\000\000\000", !44, !33} ; [ DW_TAG_lexical_block ]
-!37 = !{i32 6, i32 0, !36, null}
+!37 = !MDLocation(line: 6, scope: !36)
 !38 = !{!"0x101\00this\004\000", !39, !4, !26} ; [ DW_TAG_arg_variable ]
 !39 = !{!"0x2e\00~test1\00~test1\00_ZN5test1D0Ev\004\000\001\001\006\000\000\000", i32 0, !8, !15, !8, null, null, null, null} ; [ DW_TAG_subprogram ]
-!40 = !{i32 4, i32 0, !39, null}
-!41 = !{i32 5, i32 0, !42, null}
+!40 = !MDLocation(line: 4, scope: !39)
+!41 = !MDLocation(line: 5, scope: !42)
 !42 = !{!"0xb\000\000\000", !44, !39} ; [ DW_TAG_lexical_block ]
-!43 = !{i32 6, i32 0, !42, null}
+!43 = !MDLocation(line: 6, scope: !42)
 !44 = !{!"inheritance.cpp", !"/tmp/"}
 !45 = !{i32 0}
 !46 = !{!"<built-in>", !"/tmp/"}

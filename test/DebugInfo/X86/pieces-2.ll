@@ -32,11 +32,11 @@ target triple = "x86_64-apple-macosx10.9.0"
 define i32 @foo(%struct.Outer* byval align 8 %outer) #0 {
 entry:
   call void @llvm.dbg.declare(metadata %struct.Outer* %outer, metadata !25, metadata !{!"0x102"}), !dbg !26
-  %i1.sroa.0.0..sroa_idx = getelementptr inbounds %struct.Outer* %outer, i64 0, i32 0, i64 1, i32 0, !dbg !27
-  %i1.sroa.0.0.copyload = load i32* %i1.sroa.0.0..sroa_idx, align 8, !dbg !27
+  %i1.sroa.0.0..sroa_idx = getelementptr inbounds %struct.Outer, %struct.Outer* %outer, i64 0, i32 0, i64 1, i32 0, !dbg !27
+  %i1.sroa.0.0.copyload = load i32, i32* %i1.sroa.0.0..sroa_idx, align 8, !dbg !27
   call void @llvm.dbg.value(metadata i32 %i1.sroa.0.0.copyload, i64 0, metadata !28, metadata !29), !dbg !27
   %i1.sroa.2.0..sroa_raw_cast = bitcast %struct.Outer* %outer to i8*, !dbg !27
-  %i1.sroa.2.0..sroa_raw_idx = getelementptr inbounds i8* %i1.sroa.2.0..sroa_raw_cast, i64 20, !dbg !27
+  %i1.sroa.2.0..sroa_raw_idx = getelementptr inbounds i8, i8* %i1.sroa.2.0..sroa_raw_cast, i64 20, !dbg !27
   ret i32 %i1.sroa.0.0.copyload, !dbg !32
 }
 
@@ -83,9 +83,9 @@ attributes #2 = { nounwind }
 !23 = !{i32 1, !"Debug Info Version", i32 2}
 !24 = !{!"clang version 3.5.0 "}
 !25 = !{!"0x101\00outer\0016777226\000", !4, !5, !9} ; [ DW_TAG_arg_variable ] [outer] [line 10]
-!26 = !{i32 10, i32 0, !4, null}
-!27 = !{i32 11, i32 0, !4, null}
+!26 = !MDLocation(line: 10, scope: !4)
+!27 = !MDLocation(line: 11, scope: !4)
 !28 = !{!"0x100\00i1\0011\000", !4, !5, !14} ; [ DW_TAG_auto_variable ] [i1] [line 11]
-!29 = !{!"0x102\00147\000\004"} ; [ DW_TAG_expression ] [DW_OP_piece 0 4] [piece, size 4, offset 0]
+!29 = !{!"0x102\00157\000\0032"} ; [ DW_TAG_expression ] [DW_OP_bit_piece size=32, offset=0]
 !31 = !{i32 3, i32 0, i32 12}
-!32 = !{i32 12, i32 0, !4, null}
+!32 = !MDLocation(line: 12, scope: !4)

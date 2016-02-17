@@ -13,7 +13,7 @@ target triple = "x86_64-unknown-linux-gnu"
 define void @test() #0 {
 entry:
   tail call void (...)* @f() #2, !dbg !14
-  %0 = load i32* @A, align 4, !dbg !15
+  %0 = load i32, i32* @A, align 4, !dbg !15
   %tobool = icmp eq i32 %0, 0, !dbg !15
   br i1 %tobool, label %if.end, label %if.then, !dbg !15
 
@@ -52,11 +52,11 @@ attributes #2 = { nounwind }
 !11 = !{i32 2, !"Dwarf Version", i32 4}
 !12 = !{i32 2, !"Debug Info Version", i32 2}
 !13 = !{!"clang version 3.6.0 (trunk 223182)"}
-!14 = !{i32 6, i32 3, !4, null}
-!15 = !{i32 7, i32 7, !4, null}
-!16 = !{i32 8, i32 5, !17, null}
+!14 = !MDLocation(line: 6, column: 3, scope: !4)
+!15 = !MDLocation(line: 7, column: 7, scope: !4)
+!16 = !MDLocation(line: 8, column: 5, scope: !17)
 !17 = !{!"0xb\007\007\000", !1, !4} ; [ DW_TAG_lexical_block ] [return-block.c]
-!18 = !{i32 9, i32 1, !4, null}
+!18 = !MDLocation(line: 9, column: 1, scope: !4)
 
 ; There should be no destination edges for block 1.
 ; CHECK: Block : 0 Counter : 0

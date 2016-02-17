@@ -65,7 +65,7 @@ entry:
   %b.addr = alloca i32, align 4
   store i32 %b, i32* %b.addr, align 4
   call void @llvm.dbg.declare(metadata i32* %b.addr, metadata !21, metadata !{!"0x102"}), !dbg !22
-  %0 = load i32* %b.addr, align 4, !dbg !23
+  %0 = load i32, i32* %b.addr, align 4, !dbg !23
   %add = add nsw i32 %0, 4, !dbg !23
   ret i32 %add, !dbg !23
 }
@@ -76,16 +76,16 @@ declare void @llvm.dbg.declare(metadata, metadata, metadata) #1
 define void @_Z3baz1A(%struct.A* %a) #2 {
 entry:
   %z = alloca i32, align 4
-  call void @llvm.dbg.declare(metadata %struct.A* %a, metadata !24, metadata !{!"0x102"}), !dbg !25
+  call void @llvm.dbg.declare(metadata %struct.A* %a, metadata !24, metadata !{!"0x102\006"}), !dbg !25
   call void @llvm.dbg.declare(metadata i32* %z, metadata !26, metadata !{!"0x102"}), !dbg !27
   store i32 2, i32* %z, align 4, !dbg !27
-  %var = getelementptr inbounds %struct.A* %a, i32 0, i32 1, !dbg !28
-  %0 = load i32* %var, align 4, !dbg !28
+  %var = getelementptr inbounds %struct.A, %struct.A* %a, i32 0, i32 1, !dbg !28
+  %0 = load i32, i32* %var, align 4, !dbg !28
   %cmp = icmp sgt i32 %0, 2, !dbg !28
   br i1 %cmp, label %if.then, label %if.end, !dbg !28
 
 if.then:                                          ; preds = %entry
-  %1 = load i32* %z, align 4, !dbg !30
+  %1 = load i32, i32* %z, align 4, !dbg !30
   %inc = add nsw i32 %1, 1, !dbg !30
   store i32 %inc, i32* %z, align 4, !dbg !30
   br label %if.end, !dbg !30
@@ -97,7 +97,7 @@ if.end:                                           ; preds = %if.then, %entry
   br i1 %cmp1, label %if.then2, label %if.end4, !dbg !31
 
 if.then2:                                         ; preds = %if.end
-  %2 = load i32* %z, align 4, !dbg !33
+  %2 = load i32, i32* %z, align 4, !dbg !33
   %inc3 = add nsw i32 %2, 1, !dbg !33
   store i32 %inc3, i32* %z, align 4, !dbg !33
   br label %if.end4, !dbg !33
@@ -138,16 +138,16 @@ attributes #2 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "n
 !19 = !{i32 2, !"Debug Info Version", i32 2}
 !20 = !{!"clang version 3.5.0 (210479)"}
 !21 = !{!"0x101\00b\0016777217\000", !4, !5, !8} ; [ DW_TAG_arg_variable ] [b] [line 1]
-!22 = !{i32 1, i32 0, !4, null}
-!23 = !{i32 2, i32 0, !4, null}
-!24 = !{!"0x101\00a\0016777222\008192", !14, !15, !"_ZTS1A"} ; [ DW_TAG_arg_variable ] [a] [line 6]
-!25 = !{i32 6, i32 0, !14, null}
+!22 = !MDLocation(line: 1, scope: !4)
+!23 = !MDLocation(line: 2, scope: !4)
+!24 = !{!"0x101\00a\0016777222\000", !14, !15, !"_ZTS1A"} ; [ DW_TAG_arg_variable ] [a] [line 6]
+!25 = !MDLocation(line: 6, scope: !14)
 !26 = !{!"0x100\00z\007\000", !14, !15, !8} ; [ DW_TAG_auto_variable ] [z] [line 7]
-!27 = !{i32 7, i32 0, !14, null}
-!28 = !{i32 8, i32 0, !29, null}
+!27 = !MDLocation(line: 7, scope: !14)
+!28 = !MDLocation(line: 8, scope: !29)
 !29 = !{!"0xb\008\000\000", !10, !14} ; [ DW_TAG_lexical_block ] [/llvm_cmake_gcc/debug-loc-offset2.cc]
-!30 = !{i32 9, i32 0, !29, null}
-!31 = !{i32 10, i32 0, !32, null}
+!30 = !MDLocation(line: 9, scope: !29)
+!31 = !MDLocation(line: 10, scope: !32)
 !32 = !{!"0xb\0010\000\000", !10, !14} ; [ DW_TAG_lexical_block ] [/llvm_cmake_gcc/debug-loc-offset2.cc]
-!33 = !{i32 11, i32 0, !32, null}
-!34 = !{i32 12, i32 0, !14, null}
+!33 = !MDLocation(line: 11, scope: !32)
+!34 = !MDLocation(line: 12, scope: !14)

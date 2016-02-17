@@ -27,17 +27,17 @@ entry:
   %sa = alloca %struct.SA, align 4
   %b.addr = alloca %class.B*, align 8
   %agg.tmp = alloca %struct.SA, align 4
-  %coerce.dive = getelementptr %struct.SA* %sa, i32 0, i32 0
+  %coerce.dive = getelementptr %struct.SA, %struct.SA* %sa, i32 0, i32 0
   store i32 %sa.coerce, i32* %coerce.dive
   store %class.B* %b, %class.B** %b.addr, align 8
   call void @llvm.dbg.declare(metadata %class.B** %b.addr, metadata !24, metadata !{!"0x102"}), !dbg !25
   call void @llvm.dbg.declare(metadata %struct.SA* %sa, metadata !26, metadata !{!"0x102"}), !dbg !27
-  %0 = load %class.B** %b.addr, align 8, !dbg !28
+  %0 = load %class.B*, %class.B** %b.addr, align 8, !dbg !28
   %1 = bitcast %struct.SA* %agg.tmp to i8*, !dbg !28
   %2 = bitcast %struct.SA* %sa to i8*, !dbg !28
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* %1, i8* %2, i64 4, i32 4, i1 false), !dbg !28
-  %coerce.dive1 = getelementptr %struct.SA* %agg.tmp, i32 0, i32 0, !dbg !28
-  %3 = load i32* %coerce.dive1, !dbg !28
+  %coerce.dive1 = getelementptr %struct.SA, %struct.SA* %agg.tmp, i32 0, i32 0, !dbg !28
+  %3 = load i32, i32* %coerce.dive1, !dbg !28
   call void @_ZN1B5testBE2SA(%class.B* %0, i32 %3), !dbg !28
   ret void, !dbg !29
 }
@@ -50,12 +50,12 @@ define linkonce_odr void @_ZN1B5testBE2SA(%class.B* %this, i32 %sa.coerce) #2 al
 entry:
   %sa = alloca %struct.SA, align 4
   %this.addr = alloca %class.B*, align 8
-  %coerce.dive = getelementptr %struct.SA* %sa, i32 0, i32 0
+  %coerce.dive = getelementptr %struct.SA, %struct.SA* %sa, i32 0, i32 0
   store i32 %sa.coerce, i32* %coerce.dive
   store %class.B* %this, %class.B** %this.addr, align 8
   call void @llvm.dbg.declare(metadata %class.B** %this.addr, metadata !30, metadata !{!"0x102"}), !dbg !31
   call void @llvm.dbg.declare(metadata %struct.SA* %sa, metadata !32, metadata !{!"0x102"}), !dbg !33
-  %this1 = load %class.B** %this.addr
+  %this1 = load %class.B*, %class.B** %this.addr
   ret void, !dbg !34
 }
 
@@ -96,13 +96,13 @@ attributes #3 = { nounwind }
 !22 = !{i32 2, !"Debug Info Version", i32 2}
 !23 = !{!"clang version 3.5.0 (trunk 214102:214113M) (llvm/trunk 214102:214115M)"}
 !24 = !{!"0x101\00b\0016777227\000", !15, !16, !19} ; [ DW_TAG_arg_variable ] [b] [line 11]
-!25 = !{i32 11, i32 14, !15, null}
+!25 = !MDLocation(line: 11, column: 14, scope: !15)
 !26 = !{!"0x101\00sa\0033554443\000", !15, !16, !"_ZTS2SA"} ; [ DW_TAG_arg_variable ] [sa] [line 11]
-!27 = !{i32 11, i32 20, !15, null}
-!28 = !{i32 12, i32 3, !15, null}
-!29 = !{i32 13, i32 1, !15, null}
+!27 = !MDLocation(line: 11, column: 20, scope: !15)
+!28 = !MDLocation(line: 12, column: 3, scope: !15)
+!29 = !MDLocation(line: 13, column: 1, scope: !15)
 !30 = !{!"0x101\00this\0016777216\001088", !20, null, !19} ; [ DW_TAG_arg_variable ] [this] [line 0]
-!31 = !{i32 0, i32 0, !20, null}
+!31 = !MDLocation(line: 0, scope: !20)
 !32 = !{!"0x101\00sa\0033554439\000", !20, !16, !"_ZTS2SA"} ; [ DW_TAG_arg_variable ] [sa] [line 7]
-!33 = !{i32 7, i32 17, !20, null}
-!34 = !{i32 8, i32 3, !20, null}
+!33 = !MDLocation(line: 7, column: 17, scope: !20)
+!34 = !MDLocation(line: 8, column: 3, scope: !20)

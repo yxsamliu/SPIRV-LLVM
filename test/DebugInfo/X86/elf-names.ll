@@ -23,13 +23,13 @@
 define void @_ZN1DC2Ev(%class.D* nocapture %this) unnamed_addr nounwind uwtable align 2 {
 entry:
   tail call void @llvm.dbg.value(metadata %class.D* %this, i64 0, metadata !29, metadata !{!"0x102"}), !dbg !36
-  %c1 = getelementptr inbounds %class.D* %this, i64 0, i32 0, !dbg !37
+  %c1 = getelementptr inbounds %class.D, %class.D* %this, i64 0, i32 0, !dbg !37
   store i32 1, i32* %c1, align 4, !dbg !37
-  %c2 = getelementptr inbounds %class.D* %this, i64 0, i32 1, !dbg !42
+  %c2 = getelementptr inbounds %class.D, %class.D* %this, i64 0, i32 1, !dbg !42
   store i32 2, i32* %c2, align 4, !dbg !42
-  %c3 = getelementptr inbounds %class.D* %this, i64 0, i32 2, !dbg !43
+  %c3 = getelementptr inbounds %class.D, %class.D* %this, i64 0, i32 2, !dbg !43
   store i32 3, i32* %c3, align 4, !dbg !43
-  %c4 = getelementptr inbounds %class.D* %this, i64 0, i32 3, !dbg !44
+  %c4 = getelementptr inbounds %class.D, %class.D* %this, i64 0, i32 3, !dbg !44
   store i32 4, i32* %c4, align 4, !dbg !44
   ret void, !dbg !45
 }
@@ -38,21 +38,21 @@ define void @_ZN1DC2ERKS_(%class.D* nocapture %this, %class.D* nocapture %d) unn
 entry:
   tail call void @llvm.dbg.value(metadata %class.D* %this, i64 0, metadata !34, metadata !{!"0x102"}), !dbg !46
   tail call void @llvm.dbg.value(metadata %class.D* %d, i64 0, metadata !35, metadata !{!"0x102"}), !dbg !46
-  %c1 = getelementptr inbounds %class.D* %d, i64 0, i32 0, !dbg !47
-  %0 = load i32* %c1, align 4, !dbg !47
-  %c12 = getelementptr inbounds %class.D* %this, i64 0, i32 0, !dbg !47
+  %c1 = getelementptr inbounds %class.D, %class.D* %d, i64 0, i32 0, !dbg !47
+  %0 = load i32, i32* %c1, align 4, !dbg !47
+  %c12 = getelementptr inbounds %class.D, %class.D* %this, i64 0, i32 0, !dbg !47
   store i32 %0, i32* %c12, align 4, !dbg !47
-  %c2 = getelementptr inbounds %class.D* %d, i64 0, i32 1, !dbg !49
-  %1 = load i32* %c2, align 4, !dbg !49
-  %c23 = getelementptr inbounds %class.D* %this, i64 0, i32 1, !dbg !49
+  %c2 = getelementptr inbounds %class.D, %class.D* %d, i64 0, i32 1, !dbg !49
+  %1 = load i32, i32* %c2, align 4, !dbg !49
+  %c23 = getelementptr inbounds %class.D, %class.D* %this, i64 0, i32 1, !dbg !49
   store i32 %1, i32* %c23, align 4, !dbg !49
-  %c3 = getelementptr inbounds %class.D* %d, i64 0, i32 2, !dbg !50
-  %2 = load i32* %c3, align 4, !dbg !50
-  %c34 = getelementptr inbounds %class.D* %this, i64 0, i32 2, !dbg !50
+  %c3 = getelementptr inbounds %class.D, %class.D* %d, i64 0, i32 2, !dbg !50
+  %2 = load i32, i32* %c3, align 4, !dbg !50
+  %c34 = getelementptr inbounds %class.D, %class.D* %this, i64 0, i32 2, !dbg !50
   store i32 %2, i32* %c34, align 4, !dbg !50
-  %c4 = getelementptr inbounds %class.D* %d, i64 0, i32 3, !dbg !51
-  %3 = load i32* %c4, align 4, !dbg !51
-  %c45 = getelementptr inbounds %class.D* %this, i64 0, i32 3, !dbg !51
+  %c4 = getelementptr inbounds %class.D, %class.D* %d, i64 0, i32 3, !dbg !51
+  %3 = load i32, i32* %c4, align 4, !dbg !51
+  %c45 = getelementptr inbounds %class.D, %class.D* %this, i64 0, i32 3, !dbg !51
   store i32 %3, i32* %c45, align 4, !dbg !51
   ret void, !dbg !52
 }
@@ -94,19 +94,19 @@ declare void @llvm.dbg.value(metadata, i64, metadata, metadata) nounwind readnon
 !32 = !{!34, !35}
 !34 = !{!"0x101\00this\0016777235\001088", !31, !6, !30} ; [ DW_TAG_arg_variable ] [this] [line 19]
 !35 = !{!"0x101\00d\0033554451\000", !31, !6, !23} ; [ DW_TAG_arg_variable ] [d] [line 19]
-!36 = !{i32 12, i32 0, !5, null}
-!37 = !{i32 13, i32 0, !38, null}
+!36 = !MDLocation(line: 12, scope: !5)
+!37 = !MDLocation(line: 13, scope: !38)
 !38 = !{!"0xb\0012\000\000", !6, !5} ; [ DW_TAG_lexical_block ] [/usr/local/google/home/echristo/foo.cpp]
-!42 = !{i32 14, i32 0, !38, null}
-!43 = !{i32 15, i32 0, !38, null}
-!44 = !{i32 16, i32 0, !38, null}
-!45 = !{i32 17, i32 0, !38, null}
-!46 = !{i32 19, i32 0, !31, null}
-!47 = !{i32 20, i32 0, !48, null}
+!42 = !MDLocation(line: 14, scope: !38)
+!43 = !MDLocation(line: 15, scope: !38)
+!44 = !MDLocation(line: 16, scope: !38)
+!45 = !MDLocation(line: 17, scope: !38)
+!46 = !MDLocation(line: 19, scope: !31)
+!47 = !MDLocation(line: 20, scope: !48)
 !48 = !{!"0xb\0019\000\001", !6, !31} ; [ DW_TAG_lexical_block ] [/usr/local/google/home/echristo/foo.cpp]
-!49 = !{i32 21, i32 0, !48, null}
-!50 = !{i32 22, i32 0, !48, null}
-!51 = !{i32 23, i32 0, !48, null}
-!52 = !{i32 24, i32 0, !48, null}
+!49 = !MDLocation(line: 21, scope: !48)
+!50 = !MDLocation(line: 22, scope: !48)
+!51 = !MDLocation(line: 23, scope: !48)
+!52 = !MDLocation(line: 24, scope: !48)
 !53 = !{!"foo.cpp", !"/usr/local/google/home/echristo"}
 !54 = !{i32 1, !"Debug Info Version", i32 2}

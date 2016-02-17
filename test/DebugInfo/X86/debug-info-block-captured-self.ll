@@ -66,14 +66,14 @@
 declare void @llvm.dbg.declare(metadata, metadata, metadata) #1
 define internal void @"__24-[Main initWithContext:]_block_invoke"(i8* %.block_descriptor, i8* %obj) #0 {
   %block = bitcast i8* %.block_descriptor to <{ i8*, i32, i32, i8*, %struct.__block_descriptor*, %0* }>*, !dbg !84
-  %block.captured-self = getelementptr inbounds <{ i8*, i32, i32, i8*, %struct.__block_descriptor*, %0* }>* %block, i32 0, i32 5, !dbg !84
+  %block.captured-self = getelementptr inbounds <{ i8*, i32, i32, i8*, %struct.__block_descriptor*, %0* }>, <{ i8*, i32, i32, i8*, %struct.__block_descriptor*, %0* }>* %block, i32 0, i32 5, !dbg !84
   call void @llvm.dbg.declare(metadata <{ i8*, i32, i32, i8*, %struct.__block_descriptor*, %0* }>* %block, metadata !86, metadata !110), !dbg !87
   ret void, !dbg !87
 }
 
 define internal void @"__24-[Main initWithContext:]_block_invoke_2"(i8* %.block_descriptor, i8* %object) #0 {
   %block = bitcast i8* %.block_descriptor to <{ i8*, i32, i32, i8*, %struct.__block_descriptor*, %0* }>*, !dbg !103
-  %block.captured-self = getelementptr inbounds <{ i8*, i32, i32, i8*, %struct.__block_descriptor*, %0* }>* %block, i32 0, i32 5, !dbg !103
+  %block.captured-self = getelementptr inbounds <{ i8*, i32, i32, i8*, %struct.__block_descriptor*, %0* }>, <{ i8*, i32, i32, i8*, %struct.__block_descriptor*, %0* }>* %block, i32 0, i32 5, !dbg !103
   call void @llvm.dbg.declare(metadata <{ i8*, i32, i32, i8*, %struct.__block_descriptor*, %0* }>* %block, metadata !105, metadata !109), !dbg !106
   ret void, !dbg !106
 }
@@ -100,12 +100,12 @@ define internal void @"__24-[Main initWithContext:]_block_invoke_2"(i8* %.block_
 !40 = !{null, !41, !27}
 !41 = !{!"0xf\00\000\0064\0064\000\000", null, null, null} ; [ DW_TAG_pointer_type ] [line 0, size 64, align 64, offset 0] [from ]
 !42 = !{!"0x2e\00__24-[Main initWithContext:]_block_invoke_2\00__24-[Main initWithContext:]_block_invoke_2\00\0035\001\001\000\006\00256\000\0035", !1, !1, !39, null, void (i8*, i8*)* @"__24-[Main initWithContext:]_block_invoke_2", null, null, !15} ; [ DW_TAG_subprogram ] [line 35] [local] [def] [__24-[Main initWithContext:]_block_invoke_2]
-!84 = !{i32 33, i32 0, !38, null}
+!84 = !MDLocation(line: 33, scope: !38)
 !86 = !{!"0x100\00self\0041\000", !38, !1, !34} ; [ DW_TAG_auto_variable ] [self] [line 41]
-!87 = !{i32 41, i32 0, !38, null}
-!103 = !{i32 35, i32 0, !42, null}
+!87 = !MDLocation(line: 41, scope: !38)
+!103 = !MDLocation(line: 35, scope: !42)
 !105 = !{!"0x100\00self\0040\000", !42, !1, !34} ; [ DW_TAG_auto_variable ] [self] [line 40]
-!106 = !{i32 40, i32 0, !42, null}
+!106 = !MDLocation(line: 40, scope: !42)
 !107 = !{!"llvm/tools/clang/test/CodeGenObjC/debug-info-block-captured-self.m", !""}
 !108 = !{i32 1, !"Debug Info Version", i32 2}
 !109 = !{!"0x102\0034\0032"} ; [ DW_TAG_expression ] [DW_OP_plus 32]

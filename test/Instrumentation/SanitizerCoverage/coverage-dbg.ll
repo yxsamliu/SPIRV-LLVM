@@ -16,7 +16,7 @@
 
 ; Test that __sanitizer_cov call has !dbg pointing to the opening { of A::f().
 ; CHECK: call void @__sanitizer_cov(i32*{{.*}}), !dbg [[A:!.*]]
-; CHECK: [[A]] = !{i32 6, i32 0, !{{.*}}, null}
+; CHECK: [[A]] = !MDLocation(line: 6, scope: !{{.*}})
 
 
 target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
@@ -28,8 +28,8 @@ target triple = "x86_64-unknown-linux-gnu"
 define i32 @_ZN1A1fEv(%struct.A* nocapture readonly %this) #0 align 2 {
 entry:
   tail call void @llvm.dbg.value(metadata %struct.A* %this, i64 0, metadata !15, metadata !{!"0x102"}), !dbg !20
-  %x = getelementptr inbounds %struct.A* %this, i64 0, i32 0, !dbg !21
-  %0 = load i32* %x, align 4, !dbg !21
+  %x = getelementptr inbounds %struct.A, %struct.A* %this, i64 0, i32 0, !dbg !21
+  %0 = load i32, i32* %x, align 4, !dbg !21
   ret i32 %0, !dbg !21
 }
 
@@ -63,5 +63,5 @@ attributes #1 = { nounwind readnone }
 !17 = !{i32 2, !"Dwarf Version", i32 4}
 !18 = !{i32 2, !"Debug Info Version", i32 2}
 !19 = !{!"clang version 3.5.0 (210251)"}
-!20 = !{i32 0, i32 0, !13, null}
-!21 = !{i32 7, i32 0, !13, null}
+!20 = !MDLocation(line: 0, scope: !13)
+!21 = !MDLocation(line: 7, scope: !13)

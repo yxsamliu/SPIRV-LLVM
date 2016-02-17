@@ -30,8 +30,8 @@ for.body.preheader:                               ; preds = %entry
 
 for.body:                                         ; preds = %for.body.preheader, %if.else
   %indvars.iv = phi i64 [ %indvars.iv.next, %if.else ], [ 0, %for.body.preheader ]
-  %arrayidx = getelementptr inbounds i32* %A, i64 %indvars.iv, !dbg !12
-  %0 = load i32* %arrayidx, align 4, !dbg !12, !tbaa !15
+  %arrayidx = getelementptr inbounds i32, i32* %A, i64 %indvars.iv, !dbg !12
+  %0 = load i32, i32* %arrayidx, align 4, !dbg !12, !tbaa !15
   %cmp1 = icmp sgt i32 %0, 10, !dbg !12
   br i1 %cmp1, label %end.loopexit, label %if.else, !dbg !12
 
@@ -65,14 +65,14 @@ attributes #0 = { nounwind }
 !7 = !{i32 2, !"Dwarf Version", i32 2}
 !8 = !{i32 2, !"Debug Info Version", i32 2}
 !9 = !{!"clang version 3.5.0"}
-!10 = !{i32 3, i32 8, !11, null}
+!10 = !MDLocation(line: 3, column: 8, scope: !11)
 !11 = !{!"0xb\003\003\000", !1, !4} ; [ DW_TAG_lexical_block ]
-!12 = !{i32 5, i32 9, !13, null}
+!12 = !MDLocation(line: 5, column: 9, scope: !13)
 !13 = !{!"0xb\005\009\000", !1, !14} ; [ DW_TAG_lexical_block ]
 !14 = !{!"0xb\004\003\000", !1, !11} ; [ DW_TAG_lexical_block ]
 !15 = !{!16, !16, i64 0}
 !16 = !{!"int", !17, i64 0}
 !17 = !{!"omnipotent char", !18, i64 0}
 !18 = !{!"Simple C/C++ TBAA"}
-!19 = !{i32 8, i32 7, !13, null}
-!20 = !{i32 12, i32 3, !4, null}
+!19 = !MDLocation(line: 8, column: 7, scope: !13)
+!20 = !MDLocation(line: 12, column: 3, scope: !4)

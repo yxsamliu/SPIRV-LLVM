@@ -13,16 +13,16 @@ entry:
   %0 = alloca double                              ; <double*> [#uses=2]
   %"alloca point" = bitcast i32 0 to i32          ; <i32> [#uses=0]
   call void @llvm.dbg.declare(metadata %struct.Rect* %my_r0, metadata !0, metadata !{!"0x102"}), !dbg !15
-  %1 = getelementptr inbounds %struct.Rect* %my_r0, i32 0, i32 0, !dbg !16 ; <%struct.Pt*> [#uses=1]
-  %2 = getelementptr inbounds %struct.Pt* %1, i32 0, i32 0, !dbg !16 ; <double*> [#uses=1]
-  %3 = load double* %2, align 8, !dbg !16         ; <double> [#uses=1]
+  %1 = getelementptr inbounds %struct.Rect, %struct.Rect* %my_r0, i32 0, i32 0, !dbg !16 ; <%struct.Pt*> [#uses=1]
+  %2 = getelementptr inbounds %struct.Pt, %struct.Pt* %1, i32 0, i32 0, !dbg !16 ; <double*> [#uses=1]
+  %3 = load double, double* %2, align 8, !dbg !16         ; <double> [#uses=1]
   store double %3, double* %0, align 8, !dbg !16
-  %4 = load double* %0, align 8, !dbg !16         ; <double> [#uses=1]
+  %4 = load double, double* %0, align 8, !dbg !16         ; <double> [#uses=1]
   store double %4, double* %retval, align 8, !dbg !16
   br label %return, !dbg !16
 
 return:                                           ; preds = %entry
-  %retval1 = load double* %retval, !dbg !16       ; <double> [#uses=1]
+  %retval1 = load double, double* %retval, !dbg !16       ; <double> [#uses=1]
   ret double %retval1, !dbg !16
 }
 
@@ -46,8 +46,8 @@ declare void @llvm.dbg.declare(metadata, metadata, metadata) nounwind readnone
 !12 = !{!"0xd\00x\002\0064\0064\000\000", !19, !10, !6} ; [ DW_TAG_member ]
 !13 = !{!"0xd\00y\003\0064\0064\0064\000", !19, !10, !6} ; [ DW_TAG_member ]
 !14 = !{!"0xd\00P2\008\00128\0064\00128\000", !19, !7, !10} ; [ DW_TAG_member ]
-!15 = !{i32 11, i32 0, !1, null}
-!16 = !{i32 12, i32 0, !17, null}
+!15 = !MDLocation(line: 11, scope: !1)
+!16 = !MDLocation(line: 12, scope: !17)
 !17 = !{!"0xb\0011\000\000", !19, !1} ; [ DW_TAG_lexical_block ]
 !18 = !{!1}
 !19 = !{!"b2.c", !"/tmp/"}

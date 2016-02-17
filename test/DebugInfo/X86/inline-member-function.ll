@@ -44,13 +44,13 @@ entry:
   %retval = alloca i32, align 4
   %tmp = alloca %struct.foo, align 1
   store i32 0, i32* %retval
-  %0 = load i32* @i, align 4, !dbg !23
+  %0 = load i32, i32* @i, align 4, !dbg !23
   store %struct.foo* %tmp, %struct.foo** %this.addr.i, align 8
   call void @llvm.dbg.declare(metadata %struct.foo** %this.addr.i, metadata !24, metadata !{!"0x102"}), !dbg !26
   store i32 %0, i32* %x.addr.i, align 4
   call void @llvm.dbg.declare(metadata i32* %x.addr.i, metadata !27, metadata !{!"0x102"}), !dbg !28
-  %this1.i = load %struct.foo** %this.addr.i
-  %1 = load i32* %x.addr.i, align 4, !dbg !28
+  %this1.i = load %struct.foo*, %struct.foo** %this.addr.i
+  %1 = load i32, i32* %x.addr.i, align 4, !dbg !28
   %add.i = add nsw i32 %1, 2, !dbg !28
   ret i32 %add.i, !dbg !23
 }
@@ -88,9 +88,9 @@ attributes #1 = { nounwind readnone }
 !20 = !{i32 2, !"Dwarf Version", i32 4}
 !21 = !{i32 1, !"Debug Info Version", i32 2}
 !22 = !{!"clang version 3.5.0 "}
-!23 = !{i32 8, i32 0, !13, null}
+!23 = !MDLocation(line: 8, scope: !13)
 !24 = !{!"0x101\00this\0016777216\001088", !17, null, !25} ; [ DW_TAG_arg_variable ] [this] [line 0]
 !25 = !{!"0xf\00\000\0064\0064\000\000", null, null, !"_ZTS3foo"} ; [ DW_TAG_pointer_type ] [line 0, size 64, align 64, offset 0] [from _ZTS3foo]
-!26 = !{i32 0, i32 0, !17, !23}
+!26 = !MDLocation(line: 0, scope: !17, inlinedAt: !23)
 !27 = !{!"0x101\00x\0033554434\000", !17, !14, !9} ; [ DW_TAG_arg_variable ] [x] [line 2]
-!28 = !{i32 2, i32 0, !17, !23}
+!28 = !MDLocation(line: 2, scope: !17, inlinedAt: !23)

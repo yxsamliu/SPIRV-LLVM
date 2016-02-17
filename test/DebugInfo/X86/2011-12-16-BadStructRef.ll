@@ -33,8 +33,8 @@ entry:
   call void @llvm.dbg.declare(metadata %struct.bar** %this.addr, metadata !58, metadata !{!"0x102"}), !dbg !59
   store i32 %x, i32* %x.addr, align 4
   call void @llvm.dbg.declare(metadata i32* %x.addr, metadata !60, metadata !{!"0x102"}), !dbg !61
-  %this1 = load %struct.bar** %this.addr
-  %0 = load i32* %x.addr, align 4, !dbg !62
+  %this1 = load %struct.bar*, %struct.bar** %this.addr
+  %0 = load i32, i32* %x.addr, align 4, !dbg !62
   call void @_ZN3barC2Ei(%struct.bar* %this1, i32 %0), !dbg !62
   ret void, !dbg !62
 }
@@ -47,12 +47,12 @@ entry:
   call void @llvm.dbg.declare(metadata %struct.bar** %this.addr, metadata !63, metadata !{!"0x102"}), !dbg !64
   store i32 %x, i32* %x.addr, align 4
   call void @llvm.dbg.declare(metadata i32* %x.addr, metadata !65, metadata !{!"0x102"}), !dbg !66
-  %this1 = load %struct.bar** %this.addr
-  %b = getelementptr inbounds %struct.bar* %this1, i32 0, i32 0, !dbg !67
-  %0 = load i32* %x.addr, align 4, !dbg !67
+  %this1 = load %struct.bar*, %struct.bar** %this.addr
+  %b = getelementptr inbounds %struct.bar, %struct.bar* %this1, i32 0, i32 0, !dbg !67
+  %0 = load i32, i32* %x.addr, align 4, !dbg !67
   call void @_ZN3bazC1Ei(%struct.baz* %b, i32 %0), !dbg !67
-  %1 = getelementptr inbounds %struct.bar* %this1, i32 0, i32 1, !dbg !67
-  %b2 = getelementptr inbounds %struct.bar* %this1, i32 0, i32 0, !dbg !67
+  %1 = getelementptr inbounds %struct.bar, %struct.bar* %this1, i32 0, i32 1, !dbg !67
+  %b2 = getelementptr inbounds %struct.bar, %struct.bar* %this1, i32 0, i32 0, !dbg !67
   store %struct.baz* %b2, %struct.baz** %1, align 8, !dbg !67
   ret void, !dbg !68
 }
@@ -65,8 +65,8 @@ entry:
   call void @llvm.dbg.declare(metadata %struct.baz** %this.addr, metadata !70, metadata !{!"0x102"}), !dbg !71
   store i32 %a, i32* %a.addr, align 4
   call void @llvm.dbg.declare(metadata i32* %a.addr, metadata !72, metadata !{!"0x102"}), !dbg !73
-  %this1 = load %struct.baz** %this.addr
-  %0 = load i32* %a.addr, align 4, !dbg !74
+  %this1 = load %struct.baz*, %struct.baz** %this.addr
+  %0 = load i32, i32* %a.addr, align 4, !dbg !74
   call void @_ZN3bazC2Ei(%struct.baz* %this1, i32 %0), !dbg !74
   ret void, !dbg !74
 }
@@ -79,9 +79,9 @@ entry:
   call void @llvm.dbg.declare(metadata %struct.baz** %this.addr, metadata !75, metadata !{!"0x102"}), !dbg !76
   store i32 %a, i32* %a.addr, align 4
   call void @llvm.dbg.declare(metadata i32* %a.addr, metadata !77, metadata !{!"0x102"}), !dbg !78
-  %this1 = load %struct.baz** %this.addr
-  %h = getelementptr inbounds %struct.baz* %this1, i32 0, i32 0, !dbg !79
-  %0 = load i32* %a.addr, align 4, !dbg !79
+  %this1 = load %struct.baz*, %struct.baz** %this.addr
+  %h = getelementptr inbounds %struct.baz, %struct.baz* %this1, i32 0, i32 0, !dbg !79
+  %0 = load i32, i32* %a.addr, align 4, !dbg !79
   store i32 %0, i32* %h, align 4, !dbg !79
   ret void, !dbg !80
 }
@@ -130,37 +130,37 @@ entry:
 !45 = !{!"0x24"}                      ; [ DW_TAG_base_type ]
 !46 = !{!"0x2e\00baz\00baz\00_ZN3bazC2Ei\006\000\001\000\006\00256\000\000", !82, null, !14, null, void (%struct.baz*, i32)* @_ZN3bazC2Ei, null, !13, null} ; [ DW_TAG_subprogram ] [line 6] [def] [scope 0] [baz]
 !49 = !{!"0x101\00argc\0016777232\000", !29, !6, !12} ; [ DW_TAG_arg_variable ]
-!50 = !{i32 16, i32 14, !29, null}
+!50 = !MDLocation(line: 16, column: 14, scope: !29)
 !51 = !{!"0x101\00argv\0033554448\000", !29, !6, !32} ; [ DW_TAG_arg_variable ]
-!52 = !{i32 16, i32 27, !29, null}
+!52 = !MDLocation(line: 16, column: 27, scope: !29)
 !53 = !{!"0x100\00myBar\0018\000", !54, !6, !5} ; [ DW_TAG_auto_variable ]
 !54 = !{!"0xb\0017\001\000", !82, !29} ; [ DW_TAG_lexical_block ]
-!55 = !{i32 18, i32 9, !54, null}
-!56 = !{i32 18, i32 17, !54, null}
-!57 = !{i32 19, i32 5, !54, null}
+!55 = !MDLocation(line: 18, column: 9, scope: !54)
+!56 = !MDLocation(line: 18, column: 17, scope: !54)
+!57 = !MDLocation(line: 19, column: 5, scope: !54)
 !58 = !{!"0x101\00this\0016777229\0064", !37, !6, !24} ; [ DW_TAG_arg_variable ]
-!59 = !{i32 13, i32 5, !37, null}
+!59 = !MDLocation(line: 13, column: 5, scope: !37)
 !60 = !{!"0x101\00x\0033554445\000", !37, !6, !12} ; [ DW_TAG_arg_variable ]
-!61 = !{i32 13, i32 13, !37, null}
-!62 = !{i32 13, i32 34, !37, null}
+!61 = !MDLocation(line: 13, column: 13, scope: !37)
+!62 = !MDLocation(line: 13, column: 34, scope: !37)
 !63 = !{!"0x101\00this\0016777229\0064", !40, !6, !24} ; [ DW_TAG_arg_variable ]
-!64 = !{i32 13, i32 5, !40, null}
+!64 = !MDLocation(line: 13, column: 5, scope: !40)
 !65 = !{!"0x101\00x\0033554445\000", !40, !6, !12} ; [ DW_TAG_arg_variable ]
-!66 = !{i32 13, i32 13, !40, null}
-!67 = !{i32 13, i32 33, !40, null}
-!68 = !{i32 13, i32 34, !69, null}
+!66 = !MDLocation(line: 13, column: 13, scope: !40)
+!67 = !MDLocation(line: 13, column: 33, scope: !40)
+!68 = !MDLocation(line: 13, column: 34, scope: !69)
 !69 = !{!"0xb\0013\0033\001", !82, !40} ; [ DW_TAG_lexical_block ]
 !70 = !{!"0x101\00this\0016777222\0064", !43, !6, !16} ; [ DW_TAG_arg_variable ]
-!71 = !{i32 6, i32 5, !43, null}
+!71 = !MDLocation(line: 6, column: 5, scope: !43)
 !72 = !{!"0x101\00a\0033554438\000", !43, !6, !12} ; [ DW_TAG_arg_variable ]
-!73 = !{i32 6, i32 13, !43, null}
-!74 = !{i32 6, i32 24, !43, null}
+!73 = !MDLocation(line: 6, column: 13, scope: !43)
+!74 = !MDLocation(line: 6, column: 24, scope: !43)
 !75 = !{!"0x101\00this\0016777222\0064", !46, !6, !16} ; [ DW_TAG_arg_variable ]
-!76 = !{i32 6, i32 5, !46, null}
+!76 = !MDLocation(line: 6, column: 5, scope: !46)
 !77 = !{!"0x101\00a\0033554438\000", !46, !6, !12} ; [ DW_TAG_arg_variable ]
-!78 = !{i32 6, i32 13, !46, null}
-!79 = !{i32 6, i32 23, !46, null}
-!80 = !{i32 6, i32 24, !81, null}
+!78 = !MDLocation(line: 6, column: 13, scope: !46)
+!79 = !MDLocation(line: 6, column: 23, scope: !46)
+!80 = !MDLocation(line: 6, column: 24, scope: !81)
 !81 = !{!"0xb\006\0023\002", !82, !46} ; [ DW_TAG_lexical_block ]
 !82 = !{!"main.cpp", !"/Users/echristo/tmp/bad-struct-ref"}
 !83 = !{i32 1, !"Debug Info Version", i32 2}

@@ -36,7 +36,7 @@ entry:
   ; LOWERING: call void @llvm.dbg.value{{.*}}, !dbg ![[LOC:.*]]
   ; LOWERING: call void @llvm.dbg.value{{.*}}, !dbg ![[LOC]]
   ; LOWERING: call void @llvm.dbg.value{{.*}}, !dbg ![[LOC]]
-%0 = load i32* %map.addr, align 4, !dbg !20, !tbaa !15
+%0 = load i32, i32* %map.addr, align 4, !dbg !20, !tbaa !15
   %call1 = call i32 (i32, ...)* bitcast (i32 (...)* @verify to i32 (i32, ...)*)(i32 %0) #3, !dbg !20
   ret void, !dbg !22
 }
@@ -73,12 +73,12 @@ attributes #3 = { nounwind }
 !11 = !{i32 2, !"Dwarf Version", i32 2}
 !12 = !{i32 1, !"Debug Info Version", i32 2}
 !13 = !{!"clang version 3.5.0 "}
-!14 = !{i32 1, i32 0, !4, null}
+!14 = !MDLocation(line: 1, scope: !4)
 !15 = !{!16, !16, i64 0}
 !16 = !{!"int", !17, i64 0}
 !17 = !{!"omnipotent char", !18, i64 0}
 !18 = !{!"Simple C/C++ TBAA"}
-!19 = !{i32 3, i32 0, !4, null}
-!20 = !{i32 4, i32 0, !21, null}
+!19 = !MDLocation(line: 3, scope: !4)
+!20 = !MDLocation(line: 4, scope: !21)
 !21 = !{!"0xb\004\000\000", !1, !4} ; [ DW_TAG_lexical_block ] [formal_parameter.c]
-!22 = !{i32 5, i32 0, !4, null}
+!22 = !MDLocation(line: 5, scope: !4)

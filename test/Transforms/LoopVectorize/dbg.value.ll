@@ -17,12 +17,12 @@ entry:
 for.body:
   ;CHECK: load <4 x i32>
   %indvars.iv = phi i64 [ 0, %entry ], [ %indvars.iv.next, %for.body ]
-  %arrayidx = getelementptr inbounds [1024 x i32]* @B, i64 0, i64 %indvars.iv, !dbg !19
-  %0 = load i32* %arrayidx, align 4, !dbg !19
-  %arrayidx2 = getelementptr inbounds [1024 x i32]* @C, i64 0, i64 %indvars.iv, !dbg !19
-  %1 = load i32* %arrayidx2, align 4, !dbg !19
+  %arrayidx = getelementptr inbounds [1024 x i32], [1024 x i32]* @B, i64 0, i64 %indvars.iv, !dbg !19
+  %0 = load i32, i32* %arrayidx, align 4, !dbg !19
+  %arrayidx2 = getelementptr inbounds [1024 x i32], [1024 x i32]* @C, i64 0, i64 %indvars.iv, !dbg !19
+  %1 = load i32, i32* %arrayidx2, align 4, !dbg !19
   %add = add nsw i32 %1, %0, !dbg !19
-  %arrayidx4 = getelementptr inbounds [1024 x i32]* @A, i64 0, i64 %indvars.iv, !dbg !19
+  %arrayidx4 = getelementptr inbounds [1024 x i32], [1024 x i32]* @A, i64 0, i64 %indvars.iv, !dbg !19
   store i32 %add, i32* %arrayidx4, align 4, !dbg !19
   %indvars.iv.next = add i64 %indvars.iv, 1, !dbg !18
   tail call void @llvm.dbg.value(metadata !{null}, i64 0, metadata !9, metadata !{}), !dbg !18
@@ -62,9 +62,9 @@ attributes #1 = { nounwind readnone }
 !15 = !{i32 786465, i64 0, i64 1024}
 !16 = !{!"0x34\00B\00B\00\002\000\001", null, !4, !13, [1024 x i32]* @B, null} ; [ DW_TAG_variable ]
 !17 = !{!"0x34\00C\00C\00\003\000\001", null, !4, !13, [1024 x i32]* @C, null} ; [ DW_TAG_variable ]
-!18 = !{i32 6, i32 0, !10, null}
-!19 = !{i32 7, i32 0, !20, null}
+!18 = !MDLocation(line: 6, scope: !10)
+!19 = !MDLocation(line: 7, scope: !20)
 !20 = !{!"0xb\006\000\001", !25, !10} ; [ DW_TAG_lexical_block ]
-!24 = !{i32 9, i32 0, !3, null}
+!24 = !MDLocation(line: 9, scope: !3)
 !25 = !{!"test", !"/path/to/somewhere"}
 !26 = !{i32 1, !"Debug Info Version", i32 2}

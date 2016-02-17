@@ -21,18 +21,18 @@ entry:
   store i32 %b, i32* %b.addr, align 4
   call void @llvm.dbg.declare(metadata i32* %b.addr, metadata !8, metadata !{}), !dbg !9
   call void @llvm.dbg.declare(metadata i32* %c, metadata !10, metadata !{}), !dbg !12
-  %tmp = load i32* %a.addr, align 4, !dbg !13
+  %tmp = load i32, i32* %a.addr, align 4, !dbg !13
   store i32 %tmp, i32* %c, align 4, !dbg !13
-  %tmp1 = load i32* %a.addr, align 4, !dbg !14
-  %tmp2 = load i32* %b.addr, align 4, !dbg !14
+  %tmp1 = load i32, i32* %a.addr, align 4, !dbg !14
+  %tmp2 = load i32, i32* %b.addr, align 4, !dbg !14
   %add = add nsw i32 %tmp1, %tmp2, !dbg !14
   store i32 %add, i32* %a.addr, align 4, !dbg !14
-  %tmp3 = load i32* %c, align 4, !dbg !15
-  %tmp4 = load i32* %b.addr, align 4, !dbg !15
+  %tmp3 = load i32, i32* %c, align 4, !dbg !15
+  %tmp4 = load i32, i32* %b.addr, align 4, !dbg !15
   %sub = sub nsw i32 %tmp3, %tmp4, !dbg !15
   store i32 %sub, i32* %b.addr, align 4, !dbg !15
-  %tmp5 = load i32* %a.addr, align 4, !dbg !16
-  %tmp6 = load i32* %b.addr, align 4, !dbg !16
+  %tmp5 = load i32, i32* %a.addr, align 4, !dbg !16
+  %tmp6 = load i32, i32* %b.addr, align 4, !dbg !16
   %add7 = add nsw i32 %tmp5, %tmp6, !dbg !16
   ret i32 %add7, !dbg !16
 }
@@ -49,16 +49,16 @@ declare void @llvm.dbg.declare(metadata, metadata, metadata) nounwind readnone
 !4 = !{!5}
 !5 = !{!"0x24\00int\000\0032\0032\000\000\005", null, !0} ; [ DW_TAG_base_type ]
 !6 = !{!"0x101\00a\0016777217\000", !1, !2, !5} ; [ DW_TAG_arg_variable ]
-!7 = !{i32 1, i32 11, !1, null}
+!7 = !MDLocation(line: 1, column: 11, scope: !1)
 !8 = !{!"0x101\00b\0033554433\000", !1, !2, !5} ; [ DW_TAG_arg_variable ]
-!9 = !{i32 1, i32 18, !1, null}
+!9 = !MDLocation(line: 1, column: 18, scope: !1)
 !10 = !{!"0x100\00c\002\000", !11, !2, !5} ; [ DW_TAG_auto_variable ]
 !11 = !{!"0xb\001\0021\000", !18, !1} ; [ DW_TAG_lexical_block ]
-!12 = !{i32 2, i32 9, !11, null}
-!13 = !{i32 2, i32 14, !11, null}
-!14 = !{i32 3, i32 5, !11, null}
-!15 = !{i32 4, i32 5, !11, null}
-!16 = !{i32 5, i32 5, !11, null}
+!12 = !MDLocation(line: 2, column: 9, scope: !11)
+!13 = !MDLocation(line: 2, column: 14, scope: !11)
+!14 = !MDLocation(line: 3, column: 5, scope: !11)
+!15 = !MDLocation(line: 4, column: 5, scope: !11)
+!16 = !MDLocation(line: 5, column: 5, scope: !11)
 !17 = !{!1}
 !18 = !{!"/d/j/debug-test.c", !"/Volumes/Data/b"}
 !19 = !{i32 0}

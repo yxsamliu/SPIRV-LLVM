@@ -960,7 +960,7 @@ file_magic identify_magic(StringRef Magic) {
         unsigned low  = Data2MSB ? 17 : 16;
         if (Magic[high] == 0)
           switch (Magic[low]) {
-            default: break;
+            default: return file_magic::elf;
             case 1: return file_magic::elf_relocatable;
             case 2: return file_magic::elf_executable;
             case 3: return file_magic::elf_shared_object;
@@ -1012,6 +1012,7 @@ file_magic identify_magic(StringRef Magic) {
         case 8: return file_magic::macho_bundle;
         case 9: return file_magic::macho_dynamically_linked_shared_lib_stub;
         case 10: return file_magic::macho_dsym_companion;
+        case 11: return file_magic::macho_kext_bundle;
       }
       break;
     }

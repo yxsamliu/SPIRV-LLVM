@@ -23,7 +23,7 @@ entry:
   %a.addr = alloca i32, align 4
   store i32 %a, i32* %a.addr, align 4
   call void @llvm.dbg.declare(metadata i32* %a.addr, metadata !13, metadata !{!"0x102"}), !dbg !14
-  %0 = load i32* %a.addr, align 4, !dbg !15
+  %0 = load i32, i32* %a.addr, align 4, !dbg !15
   %add = add nsw i32 %0, 5, !dbg !15
   ret i32 %add, !dbg !15
 }
@@ -37,7 +37,7 @@ entry:
   %a.addr = alloca i32, align 4
   store i32 %a, i32* %a.addr, align 4
   call void @llvm.dbg.declare(metadata i32* %a.addr, metadata !16, metadata !{!"0x102"}), !dbg !17
-  %0 = load i32* %a.addr, align 4, !dbg !18
+  %0 = load i32, i32* %a.addr, align 4, !dbg !18
   %add = add nsw i32 %0, 5, !dbg !18
   ret i32 %add, !dbg !18
 }
@@ -63,9 +63,9 @@ attributes #1 = { nounwind readnone }
 !11 = !{i32 1, !"Debug Info Version", i32 2}
 !12 = !{!"clang version 3.5.0 (trunk 204164) (llvm/trunk 204183)"}
 !13 = !{!"0x101\00a\0016777217\000", !4, !5, !8} ; [ DW_TAG_arg_variable ] [a] [line 1]
-!14 = !{i32 1, i32 0, !4, null}
-!15 = !{i32 2, i32 0, !4, null}
+!14 = !MDLocation(line: 1, scope: !4)
+!15 = !MDLocation(line: 2, scope: !4)
 !16 = !{!"0x101\00a\0016777221\000", !9, !5, !8} ; [ DW_TAG_arg_variable ] [a] [line 5]
-!17 = !{i32 5, i32 0, !9, null}
-!18 = !{i32 6, i32 0, !9, null}
+!17 = !MDLocation(line: 5, scope: !9)
+!18 = !MDLocation(line: 6, scope: !9)
 

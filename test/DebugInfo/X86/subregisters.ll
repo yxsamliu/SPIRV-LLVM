@@ -41,8 +41,8 @@ target triple = "x86_64-apple-macosx10.9.0"
 define void @doSomething(%struct.bar* nocapture readonly %b) #0 {
 entry:
   tail call void @llvm.dbg.value(metadata %struct.bar* %b, i64 0, metadata !15, metadata !{!"0x102"}), !dbg !25
-  %a1 = getelementptr inbounds %struct.bar* %b, i64 0, i32 0, !dbg !26
-  %0 = load i32* %a1, align 4, !dbg !26, !tbaa !27
+  %a1 = getelementptr inbounds %struct.bar, %struct.bar* %b, i64 0, i32 0, !dbg !26
+  %0 = load i32, i32* %a1, align 4, !dbg !26, !tbaa !27
   tail call void @llvm.dbg.value(metadata i32 %0, i64 0, metadata !16, metadata !{!"0x102"}), !dbg !26
   %call = tail call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([4 x i8]* @.str, i64 0, i64 0), i32 %0) #4, !dbg !32
   ret void, !dbg !33
@@ -103,15 +103,15 @@ attributes #4 = { nounwind }
 !22 = !{i32 2, !"Dwarf Version", i32 2}
 !23 = !{i32 1, !"Debug Info Version", i32 2}
 !24 = !{!"clang version 3.5 "}
-!25 = !{i32 10, i32 0, !4, null}
-!26 = !{i32 12, i32 0, !4, null}
+!25 = !MDLocation(line: 10, scope: !4)
+!26 = !MDLocation(line: 12, scope: !4)
 !27 = !{!28, !29, i64 0}
 !28 = !{!"bar", !29, i64 0, !29, i64 4}
 !29 = !{!"int", !30, i64 0}
 !30 = !{!"omnipotent char", !31, i64 0}
 !31 = !{!"Simple C/C++ TBAA"}
-!32 = !{i32 13, i32 0, !4, null}
-!33 = !{i32 14, i32 0, !4, null}
-!34 = !{i32 18, i32 0, !17, null}
-!35 = !{i32 19, i32 0, !17, null}
-!36 = !{i32 20, i32 0, !17, null}
+!32 = !MDLocation(line: 13, scope: !4)
+!33 = !MDLocation(line: 14, scope: !4)
+!34 = !MDLocation(line: 18, scope: !17)
+!35 = !MDLocation(line: 19, scope: !17)
+!36 = !MDLocation(line: 20, scope: !17)

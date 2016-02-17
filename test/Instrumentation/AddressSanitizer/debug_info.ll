@@ -10,13 +10,13 @@ define i32 @_Z3zzzi(i32 %p) nounwind uwtable sanitize_address {
 entry:
   %p.addr = alloca i32, align 4
   %r = alloca i32, align 4
-  store i32 %p, i32* %p.addr, align 4
+  store volatile i32 %p, i32* %p.addr, align 4
   call void @llvm.dbg.declare(metadata i32* %p.addr, metadata !10, metadata !{!"0x102"}), !dbg !11
   call void @llvm.dbg.declare(metadata i32* %r, metadata !12, metadata !{!"0x102"}), !dbg !14
-  %0 = load i32* %p.addr, align 4, !dbg !14
+  %0 = load i32, i32* %p.addr, align 4, !dbg !14
   %add = add nsw i32 %0, 1, !dbg !14
-  store i32 %add, i32* %r, align 4, !dbg !14
-  %1 = load i32* %r, align 4, !dbg !15
+  store volatile i32 %add, i32* %r, align 4, !dbg !14
+  %1 = load i32, i32* %r, align 4, !dbg !15
   ret i32 %1, !dbg !15
 }
 
@@ -42,7 +42,7 @@ declare void @llvm.dbg.declare(metadata, metadata, metadata) nounwind readnone
 !8 = !{!9, !9}
 !9 = !{!"0x24\00int\000\0032\0032\000\000\005", null, null} ; [ DW_TAG_base_type ] [int] [line 0, size 32, align 32, offset 0, enc DW_ATE_signed]
 !10 = !{!"0x101\00p\0016777217\000", !5, !6, !9} ; [ DW_TAG_arg_variable ] [p] [line 1]
-!11 = !{i32 1, i32 0, !5, null}
+!11 = !MDLocation(line: 1, scope: !5)
 !12 = !{!"0x100\00r\002\000", !13, !6, !9} ; [ DW_TAG_auto_variable ] [r] [line 2]
 
 ; Verify that debug descriptors for argument and local variable will be replaced
@@ -56,7 +56,7 @@ declare void @llvm.dbg.declare(metadata, metadata, metadata) nounwind readnone
 
 
 !13 = !{!"0xb\001\000\000", !16, !5} ; [ DW_TAG_lexical_block ] [/usr/local/google/llvm_cmake_clang/tmp/debuginfo/a.cc]
-!14 = !{i32 2, i32 0, !13, null}
-!15 = !{i32 3, i32 0, !13, null}
+!14 = !MDLocation(line: 2, scope: !13)
+!15 = !MDLocation(line: 3, scope: !13)
 !16 = !{!"a.cc", !"/usr/local/google/llvm_cmake_clang/tmp/debuginfo"}
 !17 = !{i32 1, !"Debug Info Version", i32 2}

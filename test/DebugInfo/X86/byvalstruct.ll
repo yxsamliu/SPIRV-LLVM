@@ -74,7 +74,7 @@ entry:
   call void @llvm.dbg.declare(metadata %struct.ImageInfo* %info, metadata !33, metadata !{!"0x102"}), !dbg !34
   store i64 %length, i64* %length.addr, align 8
   call void @llvm.dbg.declare(metadata i64* %length.addr, metadata !35, metadata !{!"0x102"}), !dbg !36
-  %0 = load i8** %retval, !dbg !37
+  %0 = load i8*, i8** %retval, !dbg !37
   ret i8* %0, !dbg !37
 }
 
@@ -116,13 +116,13 @@ attributes #1 = { nounwind readnone }
 !26 = !{i32 1, !"Objective-C Image Info Section", !"__DATA, __objc_imageinfo, regular, no_dead_strip"}
 !27 = !{i32 4, !"Objective-C Garbage Collection", i32 0}
 !28 = !{!"0x101\00self\0016777225\001088", !7, !5, !14} ; [ DW_TAG_arg_variable ] [self] [line 9]
-!29 = !{i32 9, i32 0, !7, null}
+!29 = !MDLocation(line: 9, scope: !7)
 !30 = !{!"0x101\00_cmd\0033554441\0064", !7, !5, !31} ; [ DW_TAG_arg_variable ] [_cmd] [line 9]
 !31 = !{!"0x16\00SEL\009\000\000\000\000", !1, null, !12} ; [ DW_TAG_typedef ] [SEL] [line 9, size 0, align 0, offset 0] [from ]
 !32 = !{!"0x101\00otherBitmap\0050331657\000", !7, !5, !14} ; [ DW_TAG_arg_variable ] [otherBitmap] [line 9]
 !33 = !{!"0x101\00info\0067108874\000", !7, !5, !15} ; [ DW_TAG_arg_variable ] [info] [line 10]
-!34 = !{i32 10, i32 0, !7, null}
+!34 = !MDLocation(line: 10, scope: !7)
 !35 = !{!"0x101\00length\0083886091\000", !7, !5, !19} ; [ DW_TAG_arg_variable ] [length] [line 11]
-!36 = !{i32 11, i32 0, !7, null}
-!37 = !{i32 13, i32 0, !7, null}
+!36 = !MDLocation(line: 11, scope: !7)
+!37 = !MDLocation(line: 13, scope: !7)
 !38 = !{i32 1, !"Debug Info Version", i32 2}

@@ -26,31 +26,31 @@ entry:
   call void @_Z13TagFieldSpecsv(), !dbg !31
   store %struct.vector* %ref.tmp, %struct.vector** %__range, align 8, !dbg !31
   call void @llvm.dbg.declare(metadata i8** %__begin, metadata !32, metadata !{}), !dbg !30
-  %1 = load %struct.vector** %__range, align 8, !dbg !31
+  %1 = load %struct.vector*, %struct.vector** %__range, align 8, !dbg !31
   %call = call i8* @_ZN6vector5beginEv(%struct.vector* %1), !dbg !31
   store i8* %call, i8** %__begin, align 8, !dbg !31
   call void @llvm.dbg.declare(metadata i8** %__end, metadata !33, metadata !{}), !dbg !30
-  %2 = load %struct.vector** %__range, align 8, !dbg !31
+  %2 = load %struct.vector*, %struct.vector** %__range, align 8, !dbg !31
   %call1 = call i8* @_ZN6vector3endEv(%struct.vector* %2), !dbg !31
   store i8* %call1, i8** %__end, align 8, !dbg !31
   br label %for.cond, !dbg !31
 
 for.cond:                                         ; preds = %for.inc, %0
-  %3 = load i8** %__begin, align 8, !dbg !34
-  %4 = load i8** %__end, align 8, !dbg !34
+  %3 = load i8*, i8** %__begin, align 8, !dbg !34
+  %4 = load i8*, i8** %__end, align 8, !dbg !34
   %cmp = icmp ne i8* %3, %4, !dbg !34
   br i1 %cmp, label %for.body, label %for.end, !dbg !34
 
 for.body:                                         ; preds = %for.cond
   call void @llvm.dbg.declare(metadata i8* %spec, metadata !37, metadata !{}), !dbg !31
-  %5 = load i8** %__begin, align 8, !dbg !38
-  %6 = load i8* %5, align 1, !dbg !38
+  %5 = load i8*, i8** %__begin, align 8, !dbg !38
+  %6 = load i8, i8* %5, align 1, !dbg !38
   store i8 %6, i8* %spec, align 1, !dbg !38
   br label %for.inc, !dbg !38
 
 for.inc:                                          ; preds = %for.body
-  %7 = load i8** %__begin, align 8, !dbg !40
-  %incdec.ptr = getelementptr inbounds i8* %7, i32 1, !dbg !40
+  %7 = load i8*, i8** %__begin, align 8, !dbg !40
+  %incdec.ptr = getelementptr inbounds i8, i8* %7, i32 1, !dbg !40
   store i8* %incdec.ptr, i8** %__begin, align 8, !dbg !40
   br label %for.cond, !dbg !40
 
@@ -59,7 +59,7 @@ for.end:                                          ; preds = %for.cond
   unreachable, !dbg !42
 
 return:                                           ; No predecessors!
-  %8 = load i32* %retval, !dbg !44
+  %8 = load i32, i32* %retval, !dbg !44
   ret i32 %8, !dbg !44
 }
 
@@ -124,19 +124,19 @@ attributes #3 = { noreturn nounwind }
 !27 = !{!"0x100\00__range\000\0064", !28, null, !29} ; [ DW_TAG_auto_variable ] [__range] [line 0]
 !28 = !{!"0xb\0051\000\000", !5, !15} ; [ DW_TAG_lexical_block ] [./linezero.cc]
 !29 = !{!"0x42\00\000\000\000\000\000", null, null, !"_ZTS6vector"} ; [ DW_TAG_rvalue_reference_type ] [line 0, size 0, align 0, offset 0] [from _ZTS6vector]
-!30 = !{i32 0, i32 0, !28, null}
-!31 = !{i32 51, i32 0, !28, null}
+!30 = !MDLocation(line: 0, scope: !28)
+!31 = !MDLocation(line: 51, scope: !28)
 !32 = !{!"0x100\00__begin\000\0064", !28, null, !10} ; [ DW_TAG_auto_variable ] [__begin] [line 0]
 !33 = !{!"0x100\00__end\000\0064", !28, null, !10} ; [ DW_TAG_auto_variable ] [__end] [line 0]
-!34 = !{i32 51, i32 0, !35, null}
+!34 = !MDLocation(line: 51, scope: !35)
 !35 = !{!"0xb\0051\000\005", !5, !36} ; [ DW_TAG_lexical_block ] [./linezero.cc]
 !36 = !{!"0xb\0051\000\001", !5, !28} ; [ DW_TAG_lexical_block ] [./linezero.cc]
 !37 = !{!"0x100\00spec\0051\000", !28, !16, !11} ; [ DW_TAG_auto_variable ] [spec] [line 51]
-!38 = !{i32 51, i32 0, !39, null}
+!38 = !MDLocation(line: 51, scope: !39)
 !39 = !{!"0xb\0051\000\002", !5, !28} ; [ DW_TAG_lexical_block ] [./linezero.cc]
-!40 = !{i32 51, i32 0, !41, null}
+!40 = !MDLocation(line: 51, scope: !41)
 !41 = !{!"0xb\0051\000\004", !5, !28} ; [ DW_TAG_lexical_block ] [./linezero.cc]
-!42 = !{i32 51, i32 0, !43, null}
+!42 = !MDLocation(line: 51, scope: !43)
 !43 = !{!"0xb\0051\000\003", !5, !28} ; [ DW_TAG_lexical_block ] [./linezero.cc]
-!44 = !{i32 52, i32 0, !15, null}
-!45 = !{i32 54, i32 0, !20, null}
+!44 = !MDLocation(line: 52, scope: !15)
+!45 = !MDLocation(line: 54, scope: !20)

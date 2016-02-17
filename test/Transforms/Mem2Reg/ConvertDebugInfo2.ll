@@ -13,16 +13,16 @@ entry:
   %"alloca point" = bitcast i32 0 to i32          ; <i32> [#uses=0]
   call void @llvm.dbg.declare(metadata i32* %a_addr, metadata !0, metadata !{}), !dbg !7
   store i32 %a, i32* %a_addr
-  %0 = load i32* %a_addr, align 4, !dbg !8        ; <i32> [#uses=1]
+  %0 = load i32, i32* %a_addr, align 4, !dbg !8        ; <i32> [#uses=1]
   call void @llvm.dbg.declare(metadata i32* %x_addr.i, metadata !9, metadata !{}) nounwind, !dbg !15
   store i32 %0, i32* %x_addr.i
   call void @llvm.dbg.declare(metadata i64* %y_addr.i, metadata !16, metadata !{}) nounwind, !dbg !15
   store i64 55, i64* %y_addr.i
   call void @llvm.dbg.declare(metadata i8** %z_addr.i, metadata !17, metadata !{}) nounwind, !dbg !15
   store i8* bitcast (void (i32)* @baz to i8*), i8** %z_addr.i
-  %1 = load i32* %x_addr.i, align 4, !dbg !18     ; <i32> [#uses=1]
-  %2 = load i64* %y_addr.i, align 8, !dbg !18     ; <i64> [#uses=1]
-  %3 = load i8** %z_addr.i, align 8, !dbg !18     ; <i8*> [#uses=1]
+  %1 = load i32, i32* %x_addr.i, align 4, !dbg !18     ; <i32> [#uses=1]
+  %2 = load i64, i64* %y_addr.i, align 8, !dbg !18     ; <i64> [#uses=1]
+  %3 = load i8*, i8** %z_addr.i, align 8, !dbg !18     ; <i8*> [#uses=1]
   call void @foo(i32 %1, i64 %2, i8* %3) nounwind, !dbg !18
   br label %return, !dbg !19
 
@@ -39,19 +39,19 @@ return:                                           ; preds = %entry
 !4 = !{!"0x15\00\000\000\000\000\000\000", !20, !2, null, !5, null, null, null} ; [ DW_TAG_subroutine_type ] [line 0, size 0, align 0, offset 0] [from ]
 !5 = !{null, !6}
 !6 = !{!"0x24\00int\000\0032\0032\000\000\005", !20, !2} ; [ DW_TAG_base_type ]
-!7 = !{i32 8, i32 0, !1, null}
-!8 = !{i32 9, i32 0, !1, null}
+!7 = !MDLocation(line: 8, scope: !1)
+!8 = !MDLocation(line: 9, scope: !1)
 !9 = !{!"0x101\00x\004\000", !10, !2, !6} ; [ DW_TAG_arg_variable ]
 !10 = !{!"0x2e\00bar\00bar\00bar\004\001\001\000\006\000\000\004", !20, !2, !11, null, null, null, null, null} ; [ DW_TAG_subprogram ]
 !11 = !{!"0x15\00\000\000\000\000\000\000", !20, !2, null, !12, null, null, null} ; [ DW_TAG_subroutine_type ] [line 0, size 0, align 0, offset 0] [from ]
 !12 = !{null, !6, !13, !14}
 !13 = !{!"0x24\00long int\000\0064\0064\000\000\005", !20, !2} ; [ DW_TAG_base_type ]
 !14 = !{!"0xf\00\000\0064\0064\000\000", !20, !2, null} ; [ DW_TAG_pointer_type ]
-!15 = !{i32 4, i32 0, !10, !8}
+!15 = !MDLocation(line: 4, scope: !10, inlinedAt: !8)
 !16 = !{!"0x101\00y\004\000", !10, !2, !13} ; [ DW_TAG_arg_variable ]
 !17 = !{!"0x101\00z\004\000", !10, !2, !14} ; [ DW_TAG_arg_variable ]
-!18 = !{i32 5, i32 0, !10, !8}
-!19 = !{i32 10, i32 0, !1, null}
+!18 = !MDLocation(line: 5, scope: !10, inlinedAt: !8)
+!19 = !MDLocation(line: 10, scope: !1)
 !20 = !{!"bar.c", !"/tmp/"}
 !21 = !{i32 0}
 !22 = !{i32 1, !"Debug Info Version", i32 2}

@@ -36,7 +36,7 @@ entry:
   tail call void @llvm.dbg.value(metadata i32 %call, i64 0, metadata !10, metadata !16), !dbg !17
   store volatile i32 %call, i32* %c, align 4, !dbg !19
   tail call void @llvm.dbg.value(metadata i32* %c, i64 0, metadata !10, metadata !16), !dbg !17
-  %c.0.c.0. = load volatile i32* %c, align 4, !dbg !20
+  %c.0.c.0. = load volatile i32, i32* %c, align 4, !dbg !20
   ret i32 %c.0.c.0., !dbg !20
 }
 
@@ -70,8 +70,8 @@ attributes #2 = { nounwind readnone }
 !14 = !{!"clang version 3.6.0 (trunk 223522)"}
 !15 = !{i32 13}
 !16 = !{!"0x102"}               ; [ DW_TAG_expression ]
-!17 = !{i32 5, i32 16, !4, null}
-!18 = !{i32 5, i32 3, !4, null}
-!19 = !{i32 6, i32 7, !4, null}
-!20 = !{i32 7, i32 3, !4, null}
+!17 = !MDLocation(line: 5, column: 16, scope: !4)
+!18 = !MDLocation(line: 5, column: 3, scope: !4)
+!19 = !MDLocation(line: 6, column: 7, scope: !4)
+!20 = !MDLocation(line: 7, column: 3, scope: !4)
 

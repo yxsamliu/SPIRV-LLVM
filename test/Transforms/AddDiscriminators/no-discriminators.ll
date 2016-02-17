@@ -18,8 +18,8 @@ entry:
   %i.addr = alloca i64, align 8
   store i64 %i, i64* %i.addr, align 8
   call void @llvm.dbg.declare(metadata i64* %i.addr, metadata !13, metadata !{}), !dbg !14
-  %0 = load i64* %i.addr, align 8, !dbg !15
-; CHECK:  %0 = load i64* %i.addr, align 8, !dbg !15
+  %0 = load i64, i64* %i.addr, align 8, !dbg !15
+; CHECK:  %0 = load i64, i64* %i.addr, align 8, !dbg !15
   %cmp = icmp slt i64 %0, 5, !dbg !15
 ; CHECK:  %cmp = icmp slt i64 %0, 5, !dbg !15
   br i1 %cmp, label %if.then, label %if.else, !dbg !15
@@ -34,7 +34,7 @@ if.else:                                          ; preds = %entry
   br label %return, !dbg !15
 
 return:                                           ; preds = %if.else, %if.then
-  %1 = load i32* %retval, !dbg !17
+  %1 = load i32, i32* %retval, !dbg !17
   ret i32 %1, !dbg !17
 }
 
@@ -63,9 +63,9 @@ attributes #1 = { nounwind readnone }
 !11 = !{i32 1, !"Debug Info Version", i32 2}
 !12 = !{!"clang version 3.5.0 "}
 !13 = !{!"0x101\00i\0016777217\000", !4, !5, !9} ; [ DW_TAG_arg_variable ] [i] [line 1]
-!14 = !{i32 1, i32 0, !4, null}
-!15 = !{i32 2, i32 0, !16, null}
-; CHECK: !15 = !{i32 2, i32 0, !16, null}
+!14 = !MDLocation(line: 1, scope: !4)
+!15 = !MDLocation(line: 2, scope: !16)
+; CHECK: !15 = !MDLocation(line: 2, scope: !16)
 !16 = !{!"0xb\002\000\000", !1, !4} ; [ DW_TAG_lexical_block ] [./no-discriminators]
 ; CHECK: !16 = !{!"0xb\002\000\000", !1, !4} ; [ DW_TAG_lexical_block ] [./no-discriminators]
-!17 = !{i32 3, i32 0, !4, null}
+!17 = !MDLocation(line: 3, scope: !4)

@@ -8,8 +8,8 @@ target datalayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f3
 ; CHECK:   cmp.zero = icmp eq i64 {{.*}}, 0, !dbg ![[LOC:[0-9]+]]
 ; CHECK: vector.body
 ; CHECK:   index {{.*}}, !dbg ![[LOC]]
-; CHECK:   getelementptr inbounds i32* %a, {{.*}}, !dbg ![[LOC2:[0-9]+]]
-; CHECK:   load <2 x i32>* {{.*}}, !dbg ![[LOC2]]
+; CHECK:   getelementptr inbounds i32, i32* %a, {{.*}}, !dbg ![[LOC2:[0-9]+]]
+; CHECK:   load <2 x i32>, <2 x i32>* {{.*}}, !dbg ![[LOC2]]
 ; CHECK:   add <2 x i32> {{.*}}, !dbg ![[LOC2]]
 ; CHECK:   add i64 %index, 2, !dbg ![[LOC]]
 ; CHECK:   icmp eq i64 %index.next, %end.idx.rnd.down, !dbg ![[LOC]]
@@ -32,8 +32,8 @@ for.body.lr.ph:                                   ; preds = %entry
 for.body:                                         ; preds = %for.body.lr.ph, %for.body
   %indvars.iv = phi i64 [ 0, %for.body.lr.ph ], [ %indvars.iv.next, %for.body ]
   %sum.05 = phi i32 [ 0, %for.body.lr.ph ], [ %add, %for.body ]
-  %arrayidx = getelementptr inbounds i32* %a, i64 %indvars.iv, !dbg !22
-  %0 = load i32* %arrayidx, align 4, !dbg !22
+  %arrayidx = getelementptr inbounds i32, i32* %a, i64 %indvars.iv, !dbg !22
+  %0 = load i32, i32* %arrayidx, align 4, !dbg !22
   %add = add i32 %0, %sum.05, !dbg !22
   tail call void @llvm.dbg.value(metadata i32 %add.lcssa, i64 0, metadata !15, metadata !{}), !dbg !22
   %indvars.iv.next = add i64 %indvars.iv, 1, !dbg !21
@@ -82,9 +82,9 @@ attributes #1 = { nounwind readnone }
 !16 = !{!"0x100\00i\005\000", !17, !6, !11} ; [ DW_TAG_auto_variable ] [i] [line 5]
 !17 = !{!"0xb\005\000\000", !5, !4} ; [ DW_TAG_lexical_block ] [/Volumes/Data/backedup/dev/os/llvm/debug/<stdin>]
 !18 = !{i32 2, !"Dwarf Version", i32 3}
-!19 = !{i32 3, i32 0, !4, null}
-!20 = !{i32 4, i32 0, !4, null}
-!21 = !{i32 5, i32 0, !17, null}
-!22 = !{i32 6, i32 0, !17, null}
-!26 = !{i32 7, i32 0, !4, null}
+!19 = !MDLocation(line: 3, scope: !4)
+!20 = !MDLocation(line: 4, scope: !4)
+!21 = !MDLocation(line: 5, scope: !17)
+!22 = !MDLocation(line: 6, scope: !17)
+!26 = !MDLocation(line: 7, scope: !4)
 !27 = !{i32 1, !"Debug Info Version", i32 2}

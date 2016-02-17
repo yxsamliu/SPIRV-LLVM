@@ -33,8 +33,8 @@ define void @_Z4func3fooS_(%struct.foo* %f, %struct.foo* %g) #0 {
 entry:
   call void @llvm.dbg.declare(metadata %struct.foo* %f, metadata !19, metadata !{!"0x102"}), !dbg !20
   call void @llvm.dbg.declare(metadata %struct.foo* %g, metadata !21, metadata !{!"0x102"}), !dbg !20
-  %i = getelementptr inbounds %struct.foo* %f, i32 0, i32 0, !dbg !22
-  %0 = load i32* %i, align 4, !dbg !22
+  %i = getelementptr inbounds %struct.foo, %struct.foo* %f, i32 0, i32 0, !dbg !22
+  %0 = load i32, i32* %i, align 4, !dbg !22
   %inc = add nsw i32 %0, 1, !dbg !22
   store i32 %inc, i32* %i, align 4, !dbg !22
   ret void, !dbg !23
@@ -69,8 +69,8 @@ attributes #1 = { nounwind readnone }
 !17 = !{!"0x26\00\000\000\000\000\000", null, null, !8} ; [ DW_TAG_const_type ] [line 0, size 0, align 0, offset 0] [from foo]
 !18 = !{i32 786468}
 !19 = !{!"0x101\00f\0016777222\000", !4, !5, !8} ; [ DW_TAG_arg_variable ] [f] [line 6]
-!20 = !{i32 6, i32 0, !4, null}
+!20 = !MDLocation(line: 6, scope: !4)
 !21 = !{!"0x101\00g\0033554438\000", !4, !5, !8} ; [ DW_TAG_arg_variable ] [g] [line 6]
-!22 = !{i32 7, i32 0, !4, null}
-!23 = !{i32 8, i32 0, !4, null}
+!22 = !MDLocation(line: 7, scope: !4)
+!23 = !MDLocation(line: 8, scope: !4)
 !24 = !{i32 1, !"Debug Info Version", i32 2}

@@ -47,7 +47,7 @@ entry:
   %call.i = call zeroext i1 @_Z1fv(), !dbg !19
   %frombool.i = zext i1 %call.i to i8, !dbg !19
   store i8 %frombool.i, i8* %b.i, align 1, !dbg !19
-  %0 = load i8* %b.i, align 1, !dbg !19
+  %0 = load i8, i8* %b.i, align 1, !dbg !19
   %tobool.i = trunc i8 %0 to i1, !dbg !19
   br i1 %tobool.i, label %if.then.i, label %if.end.i, !dbg !19
 
@@ -60,12 +60,12 @@ if.end.i:                                         ; preds = %entry
   br label %_Z2f1v.exit, !dbg !22
 
 _Z2f1v.exit:                                      ; preds = %if.then.i, %if.end.i
-  %1 = load i32* %retval.i, !dbg !23
+  %1 = load i32, i32* %retval.i, !dbg !23
   call void @llvm.dbg.declare(metadata i8* %b.i3, metadata !24, metadata !{!"0x102"}), !dbg !27
   %call.i4 = call zeroext i1 @_Z1fv(), !dbg !27
   %frombool.i5 = zext i1 %call.i4 to i8, !dbg !27
   store i8 %frombool.i5, i8* %b.i3, align 1, !dbg !27
-  %2 = load i8* %b.i3, align 1, !dbg !27
+  %2 = load i8, i8* %b.i3, align 1, !dbg !27
   %tobool.i6 = trunc i8 %2 to i1, !dbg !27
   br i1 %tobool.i6, label %if.then.i7, label %if.end.i8, !dbg !27
 
@@ -78,7 +78,7 @@ if.end.i8:                                        ; preds = %_Z2f1v.exit
   br label %_Z2f2v.exit, !dbg !30
 
 _Z2f2v.exit:                                      ; preds = %if.then.i7, %if.end.i8
-  %3 = load i32* %retval.i2, !dbg !31
+  %3 = load i32, i32* %retval.i2, !dbg !31
   ret i32 0, !dbg !32
 }
 
@@ -114,17 +114,17 @@ attributes #2 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "n
 !16 = !{!"0x100\00b\003\000", !17, !11, !18} ; [ DW_TAG_auto_variable ] [b] [line 3]
 !17 = !{!"0xb\003\000\001", !1, !12} ; [ DW_TAG_lexical_block ] [/tmp/dbginfo/inline-scopes.cpp]
 !18 = !{!"0x24\00bool\000\008\008\000\000\002", null, null} ; [ DW_TAG_base_type ] [bool] [line 0, size 8, align 8, offset 0, enc DW_ATE_boolean]
-!19 = !{i32 3, i32 0, !17, !20}
-!20 = !{i32 8, i32 0, !4, null}
-!21 = !{i32 4, i32 0, !17, !20}
-!22 = !{i32 5, i32 0, !12, !20}
-!23 = !{i32 6, i32 0, !12, !20}
+!19 = !MDLocation(line: 3, scope: !17, inlinedAt: !20)
+!20 = !MDLocation(line: 8, scope: !4)
+!21 = !MDLocation(line: 4, scope: !17, inlinedAt: !20)
+!22 = !MDLocation(line: 5, scope: !12, inlinedAt: !20)
+!23 = !MDLocation(line: 6, scope: !12, inlinedAt: !20)
 !24 = !{!"0x100\00b\002\000", !25, !6, !18} ; [ DW_TAG_auto_variable ] [b] [line 2]
 !25 = !{!"0xb\002\000\000", !5, !26} ; [ DW_TAG_lexical_block ] [/tmp/dbginfo/y.cc]
 !26 = !{!"0xb\000", !5, !10} ; [ DW_TAG_lexical_block ] [/tmp/dbginfo/y.cc]
-!27 = !{i32 2, i32 0, !25, !28}
-!28 = !{i32 9, i32 0, !4, null}
-!29 = !{i32 3, i32 0, !25, !28}
-!30 = !{i32 4, i32 0, !26, !28}
-!31 = !{i32 5, i32 0, !26, !28}
-!32 = !{i32 10, i32 0, !4, null}
+!27 = !MDLocation(line: 2, scope: !25, inlinedAt: !28)
+!28 = !MDLocation(line: 9, scope: !4)
+!29 = !MDLocation(line: 3, scope: !25, inlinedAt: !28)
+!30 = !MDLocation(line: 4, scope: !26, inlinedAt: !28)
+!31 = !MDLocation(line: 5, scope: !26, inlinedAt: !28)
+!32 = !MDLocation(line: 10, scope: !4)

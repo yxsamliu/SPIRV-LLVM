@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/CodeGen/SelectionDAGISel.h"
+#include "llvm/CodeGen/GCStrategy.h"
 #include "ScheduleDAGSDNodes.h"
 #include "SelectionDAGBuilder.h"
 #include "llvm/ADT/PostOrderIterator.h"
@@ -19,11 +19,11 @@
 #include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/Analysis/BranchProbabilityInfo.h"
 #include "llvm/Analysis/CFG.h"
+#include "llvm/Analysis/TargetLibraryInfo.h"
 #include "llvm/CodeGen/Analysis.h"
 #include "llvm/CodeGen/FastISel.h"
 #include "llvm/CodeGen/FunctionLoweringInfo.h"
 #include "llvm/CodeGen/GCMetadata.h"
-#include "llvm/CodeGen/GCStrategy.h"
 #include "llvm/CodeGen/MachineFrameInfo.h"
 #include "llvm/CodeGen/MachineFunction.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
@@ -32,6 +32,7 @@
 #include "llvm/CodeGen/ScheduleHazardRecognizer.h"
 #include "llvm/CodeGen/SchedulerRegistry.h"
 #include "llvm/CodeGen/SelectionDAG.h"
+#include "llvm/CodeGen/SelectionDAGISel.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/Function.h"
@@ -49,7 +50,6 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetInstrInfo.h"
 #include "llvm/Target/TargetIntrinsicInfo.h"
-#include "llvm/Target/TargetLibraryInfo.h"
 #include "llvm/Target/TargetLowering.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetOptions.h"
@@ -168,14 +168,13 @@ static cl::opt<bool>
 EnableFastISelVerbose("fast-isel-verbose", cl::Hidden,
           cl::desc("Enable verbose messages in the \"fast\" "
                    "instruction selector"));
-static cl::opt<bool>
-EnableFastISelAbort("fast-isel-abort", cl::Hidden,
-          cl::desc("Enable abort calls when \"fast\" instruction selection "
-                   "fails to lower an instruction"));
-static cl::opt<bool>
-EnableFastISelAbortArgs("fast-isel-abort-args", cl::Hidden,
-          cl::desc("Enable abort calls when \"fast\" instruction selection "
-                   "fails to lower a formal argument"));
+static cl::opt<int> EnableFastISelAbort(
+    "fast-isel-abort", cl::Hidden,
+    cl::desc("Enable abort calls when \"fast\" instruction selection "
+             "fails to lower an instruction: 0 disable the abort, 1 will "
+             "abort but for args, calls and terminators, 2 will also "
+             "abort for argument lowering, and 3 will never fallback "
+             "to SelectionDAG."));
 
 static cl::opt<bool>
 UseMBPI("use-mbpi",
@@ -351,7 +350,8 @@ SelectionDAGISel::SelectionDAGISel(TargetMachine &tm,
     initializeGCModuleInfoPass(*PassRegistry::getPassRegistry());
     initializeAliasAnalysisAnalysisGroup(*PassRegistry::getPassRegistry());
     initializeBranchProbabilityInfoPass(*PassRegistry::getPassRegistry());
-    initializeTargetLibraryInfoPass(*PassRegistry::getPassRegistry());
+    initializeTargetLibraryInfoWrapperPassPass(
+        *PassRegistry::getPassRegistry());
   }
 
 SelectionDAGISel::~SelectionDAGISel() {
@@ -365,7 +365,7 @@ void SelectionDAGISel::getAnalysisUsage(AnalysisUsage &AU) const {
   AU.addPreserved<AliasAnalysis>();
   AU.addRequired<GCModuleInfo>();
   AU.addPreserved<GCModuleInfo>();
-  AU.addRequired<TargetLibraryInfo>();
+  AU.addRequired<TargetLibraryInfoWrapperPass>();
   if (UseMBPI && OptLevel != CodeGenOpt::None)
     AU.addRequired<BranchProbabilityInfo>();
   MachineFunctionPass::getAnalysisUsage(AU);
@@ -378,7 +378,7 @@ void SelectionDAGISel::getAnalysisUsage(AnalysisUsage &AU) const {
 ///
 /// This is required for correctness, so it must be done at -O0.
 ///
-static void SplitCriticalSideEffectEdges(Function &Fn, Pass *SDISel) {
+static void SplitCriticalSideEffectEdges(Function &Fn, AliasAnalysis *AA) {
   // Loop for blocks with phi nodes.
   for (Function::iterator BB = Fn.begin(), E = Fn.end(); BB != E; ++BB) {
     PHINode *PN = dyn_cast<PHINode>(BB->begin());
@@ -402,8 +402,9 @@ static void SplitCriticalSideEffectEdges(Function &Fn, Pass *SDISel) {
           continue;
 
         // Okay, we have to split this edge.
-        SplitCriticalEdge(Pred->getTerminator(),
-                          GetSuccessorNumber(Pred, BB), SDISel, true);
+        SplitCriticalEdge(
+            Pred->getTerminator(), GetSuccessorNumber(Pred, BB),
+            CriticalEdgeSplittingOptions(AA).setMergeIdenticalEdges());
         goto ReprocessBlock;
       }
   }
@@ -414,7 +415,7 @@ bool SelectionDAGISel::runOnMachineFunction(MachineFunction &mf) {
   assert((!EnableFastISelVerbose || TM.Options.EnableFastISel) &&
          "-fast-isel-verbose requires -fast-isel");
   assert((!EnableFastISelAbort || TM.Options.EnableFastISel) &&
-         "-fast-isel-abort requires -fast-isel");
+         "-fast-isel-abort > 0 requires -fast-isel");
 
   const Function &Fn = *mf.getFunction();
   MF = &mf;
@@ -435,12 +436,12 @@ bool SelectionDAGISel::runOnMachineFunction(MachineFunction &mf) {
   TLI = MF->getSubtarget().getTargetLowering();
   RegInfo = &MF->getRegInfo();
   AA = &getAnalysis<AliasAnalysis>();
-  LibInfo = &getAnalysis<TargetLibraryInfo>();
+  LibInfo = &getAnalysis<TargetLibraryInfoWrapperPass>().getTLI();
   GFI = Fn.hasGC() ? &getAnalysis<GCModuleInfo>().getFunctionInfo(Fn) : nullptr;
 
   DEBUG(dbgs() << "\n\n\n=== " << Fn.getName() << "\n");
 
-  SplitCriticalSideEffectEdges(const_cast<Function&>(Fn), this);
+  SplitCriticalSideEffectEdges(const_cast<Function&>(Fn), AA);
 
   CurDAG->init(*MF);
   FuncInfo->set(Fn, *MF, CurDAG);
@@ -658,7 +659,7 @@ void SelectionDAGISel::CodeGenAndEmitDAG() {
   (void)BlockNumber;
   bool MatchFilterBB = false; (void)MatchFilterBB;
 #ifndef NDEBUG
-  MatchFilterBB = (!FilterDAGBasicBlockName.empty() &&
+  MatchFilterBB = (FilterDAGBasicBlockName.empty() ||
                    FilterDAGBasicBlockName ==
                        FuncInfo->MBB->getBasicBlock()->getName().str());
 #endif
@@ -922,8 +923,13 @@ void SelectionDAGISel::PrepareEHLandingPad() {
   BuildMI(*MBB, FuncInfo->InsertPt, SDB->getCurDebugLoc(), II)
     .addSym(Label);
 
-  if (TM.getMCAsmInfo()->getExceptionHandlingType() ==
-      ExceptionHandling::MSVC) {
+  // If this is an MSVC-style personality function, we need to split the landing
+  // pad into several BBs.
+  const BasicBlock *LLVMBB = MBB->getBasicBlock();
+  const LandingPadInst *LPadInst = LLVMBB->getLandingPadInst();
+  MF->getMMI().addPersonality(
+      MBB, cast<Function>(LPadInst->getPersonalityFn()->stripPointerCasts()));
+  if (MF->getMMI().getPersonalityType() == EHPersonality::MSVC_Win64SEH) {
     // Make virtual registers and a series of labels that fill in values for the
     // clauses.
     auto &RI = MF->getRegInfo();
@@ -935,12 +941,14 @@ void SelectionDAGISel::PrepareEHLandingPad() {
 
     // Emit separate machine basic blocks with separate labels for each clause
     // before the main landing pad block.
-    const BasicBlock *LLVMBB = MBB->getBasicBlock();
-    const LandingPadInst *LPadInst = LLVMBB->getLandingPadInst();
     MachineInstrBuilder SelectorPHI = BuildMI(
         *MBB, MBB->begin(), SDB->getCurDebugLoc(), TII->get(TargetOpcode::PHI),
         FuncInfo->ExceptionSelectorVirtReg);
     for (unsigned I = 0, E = LPadInst->getNumClauses(); I != E; ++I) {
+      // Skip filter clauses, we can't implement them yet.
+      if (LPadInst->isFilter(I))
+        continue;
+
       MachineBasicBlock *ClauseBB = MF->CreateMachineBasicBlock(LLVMBB);
       MF->insert(MBB, ClauseBB);
 
@@ -1173,7 +1181,7 @@ void SelectionDAGISel::SelectAllBasicBlocks(const Function &Fn) {
         if (!FastIS->lowerArguments()) {
           // Fast isel failed to lower these arguments
           ++NumFastIselFailLowerArguments;
-          if (EnableFastISelAbortArgs)
+          if (EnableFastISelAbort > 1)
             llvm_unreachable("FastISel didn't lower all arguments");
 
           // Use SelectionDAG argument lowering
@@ -1243,6 +1251,10 @@ void SelectionDAGISel::SelectAllBasicBlocks(const Function &Fn) {
             dbgs() << "FastISel missed call: ";
             Inst->dump();
           }
+          if (EnableFastISelAbort > 2)
+            // FastISel selector couldn't handle something and bailed.
+            // For the purpose of debugging, just abort.
+            llvm_unreachable("FastISel didn't select the entire block");
 
           if (!Inst->getType()->isVoidTy() && !Inst->use_empty()) {
             unsigned &R = FuncInfo->ValueMap[Inst];
@@ -1270,24 +1282,24 @@ void SelectionDAGISel::SelectAllBasicBlocks(const Function &Fn) {
           continue;
         }
 
-        if (isa<TerminatorInst>(Inst) && !isa<BranchInst>(Inst)) {
-          // Don't abort, and use a different message for terminator misses.
-          NumFastIselFailures += NumFastIselRemaining;
-          if (EnableFastISelVerbose || EnableFastISelAbort) {
+        bool ShouldAbort = EnableFastISelAbort;
+        if (EnableFastISelVerbose || EnableFastISelAbort) {
+          if (isa<TerminatorInst>(Inst)) {
+            // Use a different message for terminator misses.
             dbgs() << "FastISel missed terminator: ";
-            Inst->dump();
-          }
-        } else {
-          NumFastIselFailures += NumFastIselRemaining;
-          if (EnableFastISelVerbose || EnableFastISelAbort) {
+            // Don't abort unless for terminator unless the level is really high
+            ShouldAbort = (EnableFastISelAbort > 2);
+          } else {
             dbgs() << "FastISel miss: ";
-            Inst->dump();
           }
-          if (EnableFastISelAbort)
-            // The "fast" selector couldn't handle something and bailed.
-            // For the purpose of debugging, just abort.
-            llvm_unreachable("FastISel didn't select the entire block");
+          Inst->dump();
         }
+        if (ShouldAbort)
+          // FastISel selector couldn't handle something and bailed.
+          // For the purpose of debugging, just abort.
+          llvm_unreachable("FastISel didn't select the entire block");
+
+        NumFastIselFailures += NumFastIselRemaining;
         break;
       }
 

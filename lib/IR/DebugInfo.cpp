@@ -17,6 +17,7 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallString.h"
+#include "llvm/ADT/StringSwitch.h"
 #include "llvm/Analysis/ValueTracking.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DIBuilder.h"
@@ -35,6 +36,48 @@ using namespace llvm::dwarf;
 //===----------------------------------------------------------------------===//
 // DIDescriptor
 //===----------------------------------------------------------------------===//
+
+unsigned DIDescriptor::getFlag(StringRef Flag) {
+  return StringSwitch<unsigned>(Flag)
+#define HANDLE_DI_FLAG(ID, NAME) .Case("DIFlag" #NAME, Flag##NAME)
+#include "llvm/IR/DebugInfoFlags.def"
+      .Default(0);
+}
+
+const char *DIDescriptor::getFlagString(unsigned Flag) {
+  switch (Flag) {
+  default:
+    return "";
+#define HANDLE_DI_FLAG(ID, NAME)                                               \
+  case Flag##NAME:                                                             \
+    return "DIFlag" #NAME;
+#include "llvm/IR/DebugInfoFlags.def"
+  }
+}
+
+unsigned DIDescriptor::splitFlags(unsigned Flags,
+                                  SmallVectorImpl<unsigned> &SplitFlags) {
+  // Accessibility flags need to be specially handled, since they're packed
+  // together.
+  if (unsigned A = Flags & FlagAccessibility) {
+    if (A == FlagPrivate)
+      SplitFlags.push_back(FlagPrivate);
+    else if (A == FlagProtected)
+      SplitFlags.push_back(FlagProtected);
+    else
+      SplitFlags.push_back(FlagPublic);
+    Flags &= ~A;
+  }
+
+#define HANDLE_DI_FLAG(ID, NAME)                                               \
+  if (unsigned Bit = Flags & ID) {                                             \
+    SplitFlags.push_back(Bit);                                                 \
+    Flags &= ~Bit;                                                             \
+  }
+#include "llvm/IR/DebugInfoFlags.def"
+
+  return Flags;
+}
 
 bool DIDescriptor::Verify() const {
   return DbgNode &&
@@ -147,18 +190,32 @@ uint64_t DIExpression::getElement(unsigned Idx) const {
   return getHeaderFieldAs<int64_t>(I);
 }
 
-bool DIExpression::isVariablePiece() const {
-  return getNumElements() && getElement(0) == dwarf::DW_OP_piece;
+bool DIExpression::isBitPiece() const {
+  unsigned N = getNumElements();
+  return N >=3 && getElement(N-3) == dwarf::DW_OP_bit_piece;
 }
 
-uint64_t DIExpression::getPieceOffset() const {
-  assert(isVariablePiece());
-  return getElement(1);
+uint64_t DIExpression::getBitPieceOffset() const {
+  assert(isBitPiece() && "not a piece");
+  return getElement(getNumElements()-2);
 }
 
-uint64_t DIExpression::getPieceSize() const {
-  assert(isVariablePiece());
-  return getElement(2);
+uint64_t DIExpression::getBitPieceSize() const {
+  assert(isBitPiece() && "not a piece");
+  return getElement(getNumElements()-1);
+}
+
+DIExpression::iterator DIExpression::begin() const {
+ return DIExpression::iterator(*this);
+}
+
+DIExpression::iterator DIExpression::end() const {
+ return DIExpression::iterator();
+}
+
+DIExpression::Operand DIExpression::Operand::getNext() const {
+  iterator it(I);
+  return *(++it);
 }
 
 //===----------------------------------------------------------------------===//
@@ -240,8 +297,7 @@ bool DIDescriptor::isSubprogram() const {
 }
 
 bool DIDescriptor::isGlobalVariable() const {
-  return DbgNode && (getTag() == dwarf::DW_TAG_variable ||
-                     getTag() == dwarf::DW_TAG_constant);
+  return DbgNode && getTag() == dwarf::DW_TAG_variable;
 }
 
 bool DIDescriptor::isScope() const {
@@ -320,35 +376,31 @@ bool DIDescriptor::isExpression() const {
 // Simple Descriptor Constructors and other Methods
 //===----------------------------------------------------------------------===//
 
-void DIDescriptor::replaceAllUsesWith(LLVMContext &VMContext, DIDescriptor D) {
-
+void DIDescriptor::replaceAllUsesWith(LLVMContext &, DIDescriptor D) {
   assert(DbgNode && "Trying to replace an unverified type!");
+  assert(DbgNode->isTemporary() && "Expected temporary node");
+  TempMDNode Temp(get());
 
   // Since we use a TrackingVH for the node, its easy for clients to manufacture
   // legitimate situations where they want to replaceAllUsesWith() on something
   // which, due to uniquing, has merged with the source. We shield clients from
   // this detail by allowing a value to be replaced with replaceAllUsesWith()
   // itself.
-  const MDNode *DN = D;
-  if (DbgNode == DN) {
-    SmallVector<Metadata *, 10> Ops(DbgNode->getNumOperands());
-    for (size_t i = 0; i != Ops.size(); ++i)
-      Ops[i] = DbgNode->getOperand(i);
-    DN = MDNode::get(VMContext, Ops);
+  if (Temp.get() == D.get()) {
+    DbgNode = MDNode::replaceWithUniqued(std::move(Temp));
+    return;
   }
 
-  auto *Node = cast<MDNodeFwdDecl>(const_cast<MDNode *>(DbgNode));
-  Node->replaceAllUsesWith(const_cast<MDNode *>(DN));
-  MDNode::deleteTemporary(Node);
-  DbgNode = DN;
+  Temp->replaceAllUsesWith(D.get());
+  DbgNode = D.get();
 }
 
 void DIDescriptor::replaceAllUsesWith(MDNode *D) {
   assert(DbgNode && "Trying to replace an unverified type!");
   assert(DbgNode != D && "This replacement should always happen");
-  auto *Node = cast<MDNodeFwdDecl>(const_cast<MDNode *>(DbgNode));
+  assert(DbgNode->isTemporary() && "Expected temporary node");
+  TempMDNode Node(get());
   Node->replaceAllUsesWith(D);
-  MDNode::deleteTemporary(Node);
 }
 
 bool DICompileUnit::Verify() const {
@@ -372,16 +424,9 @@ bool DIObjCProperty::Verify() const {
 }
 
 /// \brief Check if a field at position Elt of a MDNode is a MDNode.
-///
-/// We currently allow an empty string and an integer.
-/// But we don't allow a non-empty string in a MDNode field.
 static bool fieldIsMDNode(const MDNode *DbgNode, unsigned Elt) {
-  // FIXME: This function should return true, if the field is null or the field
-  // is indeed a MDNode: return !Fld || isa<MDNode>(Fld).
   Metadata *Fld = getField(DbgNode, Elt);
-  if (Fld && isa<MDString>(Fld) && !cast<MDString>(Fld)->getString().empty())
-    return false;
-  return true;
+  return !Fld || isa<MDNode>(Fld);
 }
 
 /// \brief Check if a field at position Elt of a MDNode is a MDString.
@@ -412,13 +457,26 @@ static bool isScopeRef(const Metadata *MD) {
     return true;
   if (auto *S = dyn_cast<MDString>(MD))
     return !S->getString().empty();
-  return isa<MDNode>(MD);
+  if (auto *N = dyn_cast<MDNode>(MD))
+    return DIScope(N).isScope();
+  return false;
 }
 
 /// \brief Check if a field at position Elt of a MDNode can be a ScopeRef.
 static bool fieldIsScopeRef(const MDNode *DbgNode, unsigned Elt) {
   return isScopeRef(dyn_cast_or_null<Metadata>(getField(DbgNode, Elt)));
 }
+
+#ifndef NDEBUG
+/// \brief Check if a value can be a DescriptorRef.
+static bool isDescriptorRef(const Metadata *MD) {
+  if (!MD)
+    return true;
+  if (auto *S = dyn_cast<MDString>(MD))
+    return !S->getString().empty();
+  return isa<MDNode>(MD);
+}
+#endif
 
 bool DIType::Verify() const {
   if (!isType())
@@ -525,12 +583,16 @@ bool DISubprogram::Verify() const {
         while ((IA = DL.getInlinedAt()))
           DL = DebugLoc::getFromDILocation(IA);
         DL.getScopeAndInlinedAt(Scope, IA);
+        if (!Scope)
+          return false;
         assert(!IA);
         while (!DIDescriptor(Scope).isSubprogram()) {
           DILexicalBlockFile D(Scope);
           Scope = D.isLexicalBlockFile()
                       ? D.getScope()
                       : DebugLoc::getFromDILexicalBlock(Scope).getScope();
+          if (!Scope)
+            return false;
         }
         if (!DISubprogram(Scope).describes(F))
           return false;
@@ -588,14 +650,29 @@ bool DIExpression::Verify() const {
   if (!DbgNode)
     return true;
 
-  return isExpression() && DbgNode->getNumOperands() == 1;
+  if (!(isExpression() && DbgNode->getNumOperands() == 1))
+    return false;
+
+  for (auto Op : *this)
+    switch (Op) {
+    case DW_OP_bit_piece:
+      // Must be the last element of the expression.
+      return std::distance(Op.getBase(), DIHeaderFieldIterator()) == 3;
+    case DW_OP_plus:
+      if (std::distance(Op.getBase(), DIHeaderFieldIterator()) < 2)
+        return false;
+      break;
+    case DW_OP_deref:
+      break;
+    default:
+      // Other operators are not yet supported by the backend.
+      return false;
+    }
+  return true;
 }
 
 bool DILocation::Verify() const {
-  if (!DbgNode)
-    return false;
-
-  return DbgNode->getNumOperands() == 4;
+  return DbgNode && isa<MDLocation>(DbgNode);
 }
 
 bool DINameSpace::Verify() const {
@@ -830,16 +907,12 @@ void DICompileUnit::replaceGlobalVariables(DIArray GlobalVariables) {
 
 DILocation DILocation::copyWithNewScope(LLVMContext &Ctx,
                                         DILexicalBlockFile NewScope) {
-  SmallVector<Metadata *, 10> Elts;
   assert(Verify());
-  for (unsigned I = 0; I < DbgNode->getNumOperands(); ++I) {
-    if (I != 2)
-      Elts.push_back(DbgNode->getOperand(I));
-    else
-      Elts.push_back(NewScope);
-  }
-  MDNode *NewDIL = MDNode::get(Ctx, Elts);
-  return DILocation(NewDIL);
+  assert(NewScope && "Expected valid scope");
+
+  const auto *Old = cast<MDLocation>(DbgNode);
+  return DILocation(MDLocation::get(Ctx, Old->getLine(), Old->getColumn(),
+                                    NewScope, Old->getInlinedAt()));
 }
 
 unsigned DILocation::computeNewDiscriminator(LLVMContext &Ctx) {
@@ -854,9 +927,8 @@ DIVariable llvm::createInlinedVariable(MDNode *DV, MDNode *InlinedScope,
     return cleanseInlinedVariable(DV, VMContext);
 
   // Insert inlined scope.
-  SmallVector<Metadata *, 8> Elts;
-  for (unsigned I = 0, E = DIVariableInlinedAtIndex; I != E; ++I)
-    Elts.push_back(DV->getOperand(I));
+  SmallVector<Metadata *, 8> Elts(DV->op_begin(),
+                                  DV->op_begin() + DIVariableInlinedAtIndex);
   Elts.push_back(InlinedScope);
 
   DIVariable Inlined(MDNode::get(VMContext, Elts));
@@ -870,9 +942,8 @@ DIVariable llvm::cleanseInlinedVariable(MDNode *DV, LLVMContext &VMContext) {
     return DIVariable(DV);
 
   // Remove inlined scope.
-  SmallVector<Metadata *, 8> Elts;
-  for (unsigned I = 0, E = DIVariableInlinedAtIndex; I != E; ++I)
-    Elts.push_back(DV->getOperand(I));
+  SmallVector<Metadata *, 8> Elts(DV->op_begin(),
+                                  DV->op_begin() + DIVariableInlinedAtIndex);
 
   DIVariable Cleansed(MDNode::get(VMContext, Elts));
   assert(Cleansed.Verify() && "Expected to create a DIVariable");
@@ -1085,11 +1156,9 @@ void DebugInfoFinder::processSubprogram(DISubprogram SP) {
     DIDescriptor Element = TParams.getElement(I);
     if (Element.isTemplateTypeParameter()) {
       DITemplateTypeParameter TType(Element);
-      processScope(TType.getContext().resolve(TypeIdentifierMap));
       processType(TType.getType().resolve(TypeIdentifierMap));
     } else if (Element.isTemplateValueParameter()) {
       DITemplateValueParameter TVal(Element);
-      processScope(TVal.getContext().resolve(TypeIdentifierMap));
       processType(TVal.getType().resolve(TypeIdentifierMap));
     }
   }
@@ -1380,27 +1449,22 @@ void DIVariable::printInternal(raw_ostream &OS) const {
 }
 
 void DIExpression::printInternal(raw_ostream &OS) const {
-  for (unsigned I = 0; I < getNumElements(); ++I) {
-    uint64_t OpCode = getElement(I);
-    OS << " [" << OperationEncodingString(OpCode);
-    switch (OpCode) {
+  for (auto Op : *this) {
+    OS << " [" << OperationEncodingString(Op);
+    switch (Op) {
     case DW_OP_plus: {
-      OS << " " << getElement(++I);
+      OS << " " << Op.getArg(1);
       break;
     }
-    case DW_OP_piece: {
-      unsigned Offset = getElement(++I);
-      unsigned Size = getElement(++I);
-      OS << " offset=" << Offset << ", size=" << Size;
+    case DW_OP_bit_piece: {
+      OS << " offset=" << Op.getArg(1) << ", size=" << Op.getArg(2);
       break;
     }
     case DW_OP_deref:
       // No arguments.
       break;
     default:
-      // Else bail out early. This may be a line table entry.
-      OS << "Unknown]";
-      return;
+      llvm_unreachable("unhandled operation");
     }
     OS << "]";
   }
@@ -1449,6 +1513,10 @@ void DIVariable::printExtendedName(raw_ostream &OS) const {
   }
 }
 
+template <> DIRef<DIDescriptor>::DIRef(const Metadata *V) : Val(V) {
+  assert(isDescriptorRef(V) &&
+         "DIDescriptorRef should be a MDString or MDNode");
+}
 template <> DIRef<DIScope>::DIRef(const Metadata *V) : Val(V) {
   assert(isScopeRef(V) && "DIScopeRef should be a MDString or MDNode");
 }
@@ -1456,6 +1524,10 @@ template <> DIRef<DIType>::DIRef(const Metadata *V) : Val(V) {
   assert(isTypeRef(V) && "DITypeRef should be a MDString or MDNode");
 }
 
+template <>
+DIDescriptorRef DIDescriptor::getFieldAs<DIDescriptorRef>(unsigned Elt) const {
+  return DIDescriptorRef(cast_or_null<Metadata>(getField(DbgNode, Elt)));
+}
 template <>
 DIScopeRef DIDescriptor::getFieldAs<DIScopeRef>(unsigned Elt) const {
   return DIScopeRef(cast_or_null<Metadata>(getField(DbgNode, Elt)));
@@ -1512,7 +1584,7 @@ bool llvm::StripDebugInfo(Module &M) {
 }
 
 unsigned llvm::getDebugMetadataVersionFromModule(const Module &M) {
-  if (auto *Val = mdconst::extract_or_null<ConstantInt>(
+  if (auto *Val = mdconst::dyn_extract_or_null<ConstantInt>(
           M.getModuleFlag("Debug Info Version")))
     return Val->getZExtValue();
   return 0;

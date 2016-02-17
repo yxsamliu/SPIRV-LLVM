@@ -37,12 +37,12 @@ entry:
   store volatile i32 0, i32* %retval
   call void @llvm.dbg.declare(metadata [100 x i32]* %main_arr, metadata !17, metadata !{!"0x102"}), !dbg !22
   call void @llvm.dbg.declare(metadata i32* %val, metadata !23, metadata !{!"0x102"}), !dbg !24
-  %arraydecay = getelementptr inbounds [100 x i32]* %main_arr, i32 0, i32 0, !dbg !25
+  %arraydecay = getelementptr inbounds [100 x i32], [100 x i32]* %main_arr, i32 0, i32 0, !dbg !25
   call void @populate_array(i32* %arraydecay, i32 100), !dbg !25
-  %arraydecay1 = getelementptr inbounds [100 x i32]* %main_arr, i32 0, i32 0, !dbg !26
+  %arraydecay1 = getelementptr inbounds [100 x i32], [100 x i32]* %main_arr, i32 0, i32 0, !dbg !26
   %call = call i32 @sum_array(i32* %arraydecay1, i32 100), !dbg !26
   store i32 %call, i32* %val, align 4, !dbg !26
-  %0 = load i32* %val, align 4, !dbg !27
+  %0 = load i32, i32* %val, align 4, !dbg !27
   %call2 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([13 x i8]* @.str, i32 0, i32 0), i32 %0), !dbg !27
   ret i32 0, !dbg !28
 }
@@ -71,12 +71,12 @@ declare i32 @printf(i8*, ...)
 !18 = !{!"0xb\0018\0016\004", !29, !14} ; [ DW_TAG_lexical_block ] [/home/timnor01/a64-trunk/build/simple.c]
 !19 = !{!"0x1\00\000\003200\0032\000\000", null, null, !10, !20, i32 0, null, null, null} ; [ DW_TAG_array_type ] [line 0, size 3200, align 32, offset 0] [from int]
 !20 = !{!"0x21\000\0099"}       ; [ DW_TAG_subrange_type ] [0, 99]
-!22 = !{i32 19, i32 7, !18, null}
+!22 = !MDLocation(line: 19, column: 7, scope: !18)
 !23 = !{!"0x100\00val\0020\000", !18, !6, !10} ; [ DW_TAG_auto_variable ] [val] [line 20]
-!24 = !{i32 20, i32 7, !18, null}
-!25 = !{i32 22, i32 3, !18, null}
-!26 = !{i32 23, i32 9, !18, null}
-!27 = !{i32 24, i32 3, !18, null}
-!28 = !{i32 26, i32 3, !18, null}
+!24 = !MDLocation(line: 20, column: 7, scope: !18)
+!25 = !MDLocation(line: 22, column: 3, scope: !18)
+!26 = !MDLocation(line: 23, column: 9, scope: !18)
+!27 = !MDLocation(line: 24, column: 3, scope: !18)
+!28 = !MDLocation(line: 26, column: 3, scope: !18)
 !29 = !{!"simple.c", !"/home/timnor01/a64-trunk/build"}
 !30 = !{i32 1, !"Debug Info Version", i32 2}

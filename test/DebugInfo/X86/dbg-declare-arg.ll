@@ -17,12 +17,12 @@ entry:
   call void @llvm.dbg.declare(metadata i32* %i.addr, metadata !26, metadata !{!"0x102"}), !dbg !27
   call void @llvm.dbg.declare(metadata i32* %j, metadata !28, metadata !{!"0x102"}), !dbg !30
   store i32 0, i32* %j, align 4, !dbg !31
-  %tmp = load i32* %i.addr, align 4, !dbg !32
+  %tmp = load i32, i32* %i.addr, align 4, !dbg !32
   %cmp = icmp eq i32 %tmp, 42, !dbg !32
   br i1 %cmp, label %if.then, label %if.end, !dbg !32
 
 if.then:                                          ; preds = %entry
-  %tmp1 = load i32* %i.addr, align 4, !dbg !33
+  %tmp1 = load i32, i32* %i.addr, align 4, !dbg !33
   %add = add nsw i32 %tmp1, 1, !dbg !33
   store i32 %add, i32* %j, align 4, !dbg !33
   br label %if.end, !dbg !35
@@ -30,12 +30,12 @@ if.then:                                          ; preds = %entry
 if.end:                                           ; preds = %if.then, %entry
   store i1 false, i1* %nrvo, !dbg !36
   call void @llvm.dbg.declare(metadata %class.A* %agg.result, metadata !37, metadata !{!"0x102"}), !dbg !39
-  %tmp2 = load i32* %j, align 4, !dbg !40
-  %x = getelementptr inbounds %class.A* %agg.result, i32 0, i32 0, !dbg !40
+  %tmp2 = load i32, i32* %j, align 4, !dbg !40
+  %x = getelementptr inbounds %class.A, %class.A* %agg.result, i32 0, i32 0, !dbg !40
   store i32 %tmp2, i32* %x, align 4, !dbg !40
   store i1 true, i1* %nrvo, !dbg !41
   store i32 1, i32* %cleanup.dest.slot
-  %nrvo.val = load i1* %nrvo, !dbg !42
+  %nrvo.val = load i1, i1* %nrvo, !dbg !42
   br i1 %nrvo.val, label %nrvo.skipdtor, label %nrvo.unused, !dbg !42
 
 nrvo.unused:                                      ; preds = %if.end
@@ -53,7 +53,7 @@ entry:
   %this.addr = alloca %class.A*, align 8
   store %class.A* %this, %class.A** %this.addr, align 8
   call void @llvm.dbg.declare(metadata %class.A** %this.addr, metadata !43, metadata !{!"0x102"}), !dbg !44
-  %this1 = load %class.A** %this.addr
+  %this1 = load %class.A*, %class.A** %this.addr
   call void @_ZN1AD2Ev(%class.A* %this1)
   ret void, !dbg !45
 }
@@ -63,8 +63,8 @@ entry:
   %this.addr = alloca %class.A*, align 8
   store %class.A* %this, %class.A** %this.addr, align 8
   call void @llvm.dbg.declare(metadata %class.A** %this.addr, metadata !46, metadata !{!"0x102"}), !dbg !47
-  %this1 = load %class.A** %this.addr
-  %x = getelementptr inbounds %class.A* %this1, i32 0, i32 0, !dbg !48
+  %this1 = load %class.A*, %class.A** %this.addr
+  %x = getelementptr inbounds %class.A, %class.A* %this1, i32 0, i32 0, !dbg !48
   store i32 1, i32* %x, align 4, !dbg !48
   ret void, !dbg !48
 }
@@ -99,28 +99,28 @@ entry:
 !24 = !{null}
 !25 = !{!"0x2e\00~A\00~A\00_ZN1AD2Ev\002\000\001\000\006\00256\000\000", !51, !3, !23, null, void (%class.A*)* @_ZN1AD2Ev, null, null, null} ; [ DW_TAG_subprogram ] [line 2] [def] [scope 0] [~A]
 !26 = !{!"0x101\00i\0016777220\000", !19, !3, !6} ; [ DW_TAG_arg_variable ]
-!27 = !{i32 4, i32 11, !19, null}
+!27 = !MDLocation(line: 4, column: 11, scope: !19)
 !28 = !{!"0x100\00j\005\000", !29, !3, !6} ; [ DW_TAG_auto_variable ]
 !29 = !{!"0xb\004\0014\000", !51, !19} ; [ DW_TAG_lexical_block ]
-!30 = !{i32 5, i32 7, !29, null}
-!31 = !{i32 5, i32 12, !29, null}
-!32 = !{i32 6, i32 3, !29, null}
-!33 = !{i32 7, i32 5, !34, null}
+!30 = !MDLocation(line: 5, column: 7, scope: !29)
+!31 = !MDLocation(line: 5, column: 12, scope: !29)
+!32 = !MDLocation(line: 6, column: 3, scope: !29)
+!33 = !MDLocation(line: 7, column: 5, scope: !34)
 !34 = !{!"0xb\006\0016\001", !51, !29} ; [ DW_TAG_lexical_block ]
-!35 = !{i32 8, i32 3, !34, null}
-!36 = !{i32 9, i32 9, !29, null}
+!35 = !MDLocation(line: 8, column: 3, scope: !34)
+!36 = !MDLocation(line: 9, column: 9, scope: !29)
 !37 = !{!"0x100\00my_a\009\000", !29, !3, !38} ; [ DW_TAG_auto_variable ]
 !38 = !{!"0x10\00\000\000\000\000\000", !2, null, !1} ; [ DW_TAG_reference_type ]
-!39 = !{i32 9, i32 5, !29, null}
-!40 = !{i32 10, i32 3, !29, null}
-!41 = !{i32 11, i32 3, !29, null}
-!42 = !{i32 12, i32 1, !29, null}
+!39 = !MDLocation(line: 9, column: 5, scope: !29)
+!40 = !MDLocation(line: 10, column: 3, scope: !29)
+!41 = !MDLocation(line: 11, column: 3, scope: !29)
+!42 = !MDLocation(line: 12, column: 1, scope: !29)
 !43 = !{!"0x101\00this\0016777218\0064", !22, !3, !13} ; [ DW_TAG_arg_variable ]
-!44 = !{i32 2, i32 47, !22, null}
-!45 = !{i32 2, i32 61, !22, null}
+!44 = !MDLocation(line: 2, column: 47, scope: !22)
+!45 = !MDLocation(line: 2, column: 61, scope: !22)
 !46 = !{!"0x101\00this\0016777218\0064", !25, !3, !13} ; [ DW_TAG_arg_variable ]
-!47 = !{i32 2, i32 47, !25, null}
-!48 = !{i32 2, i32 54, !49, null}
+!47 = !MDLocation(line: 2, column: 47, scope: !25)
+!48 = !MDLocation(line: 2, column: 54, scope: !49)
 !49 = !{!"0xb\002\0052\002", !51, !25} ; [ DW_TAG_lexical_block ]
 !50 = !{!19, !22, !25}
 !51 = !{!"a.cc", !"/private/tmp"}

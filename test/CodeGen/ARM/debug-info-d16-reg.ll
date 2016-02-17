@@ -42,7 +42,7 @@ entry:
   %1 = fadd double %0, 5.555552e+05, !dbg !35
   tail call void @llvm.dbg.value(metadata double %1, i64 0, metadata !24, metadata !{!"0x102"}), !dbg !35
   %2 = tail call i32 @puts(i8* getelementptr inbounds ([6 x i8]* @.str1, i32 0, i32 0)) nounwind, !dbg !36
-  %3 = getelementptr inbounds i8* bitcast (i32 (i32, i8**)* @main to i8*), i32 %argc, !dbg !37
+  %3 = getelementptr inbounds i8, i8* bitcast (i32 (i32, i8**)* @main to i8*), i32 %argc, !dbg !37
   %4 = trunc i32 %argc to i8, !dbg !37
   %5 = add i8 %4, 97, !dbg !37
   tail call void @llvm.dbg.value(metadata i8* %3, i64 0, metadata !19, metadata !{!"0x102"}) nounwind, !dbg !38
@@ -85,22 +85,22 @@ declare i32 @puts(i8* nocapture) nounwind
 !23 = !{!"0x101\00argv\0017\000", !10, !1, !13} ; [ DW_TAG_arg_variable ]
 !24 = !{!"0x100\00dval\0019\000", !25, !1, !7} ; [ DW_TAG_auto_variable ]
 !25 = !{!"0xb\0018\000\002", !46, !10} ; [ DW_TAG_lexical_block ]
-!26 = !{i32 4, i32 0, !9, null}
-!27 = !{i32 6, i32 0, !28, null}
+!26 = !MDLocation(line: 4, scope: !9)
+!27 = !MDLocation(line: 6, scope: !28)
 !28 = !{!"0xb\005\000\001", !46, !9} ; [ DW_TAG_lexical_block ]
-!29 = !{i32 7, i32 0, !28, null}
-!30 = !{i32 11, i32 0, !0, null}
-!31 = !{i32 13, i32 0, !32, null}
+!29 = !MDLocation(line: 7, scope: !28)
+!30 = !MDLocation(line: 11, scope: !0)
+!31 = !MDLocation(line: 13, scope: !32)
 !32 = !{!"0xb\0012\000\000", !46, !0} ; [ DW_TAG_lexical_block ]
-!33 = !{i32 14, i32 0, !32, null}
-!34 = !{i32 17, i32 0, !10, null}
-!35 = !{i32 19, i32 0, !25, null}
-!36 = !{i32 20, i32 0, !25, null}
-!37 = !{i32 21, i32 0, !25, null}
-!38 = !{i32 4, i32 0, !9, !37}
-!39 = !{i32 6, i32 0, !28, !37}
-!40 = !{i32 22, i32 0, !25, null}
-!41 = !{i32 23, i32 0, !25, null}
+!33 = !MDLocation(line: 14, scope: !32)
+!34 = !MDLocation(line: 17, scope: !10)
+!35 = !MDLocation(line: 19, scope: !25)
+!36 = !MDLocation(line: 20, scope: !25)
+!37 = !MDLocation(line: 21, scope: !25)
+!38 = !MDLocation(line: 4, scope: !9, inlinedAt: !37)
+!39 = !MDLocation(line: 6, scope: !28, inlinedAt: !37)
+!40 = !MDLocation(line: 22, scope: !25)
+!41 = !MDLocation(line: 23, scope: !25)
 !42 = !{!0, !9, !10}
 !43 = !{!16, !17, !18}
 !44 = !{!19, !20, !21}

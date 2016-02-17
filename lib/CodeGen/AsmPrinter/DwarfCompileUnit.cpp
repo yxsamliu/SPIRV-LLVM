@@ -292,8 +292,7 @@ DIE &DwarfCompileUnit::updateSubprogramScopeDIE(DISubprogram SP) {
 
   // Only include DW_AT_frame_base in full debug info
   if (!includeMinimalInlineScopes()) {
-    const TargetRegisterInfo *RI =
-        Asm->TM.getSubtargetImpl()->getRegisterInfo();
+    const TargetRegisterInfo *RI = Asm->MF->getSubtarget().getRegisterInfo();
     MachineLocation Location(RI->getFrameRegister(*Asm->MF));
     if (RI->isPhysicalRegister(Location.getReg()))
       addAddress(*SPDie, dwarf::DW_AT_frame_base, Location);
@@ -516,15 +515,23 @@ DwarfCompileUnit::constructVariableDIEImpl(const DbgVariable &DV,
   }
 
   // .. else use frame index.
-  int FI = DV.getFrameIndex();
-  if (FI != ~0) {
+  if (DV.getFrameIndex().back() == ~0)
+    return VariableDie;
+
+  auto Expr = DV.getExpression().begin();
+  DIELoc *Loc = new (DIEValueAllocator) DIELoc();
+  DIEDwarfExpression DwarfExpr(*Asm, *this, *Loc);
+  for (auto FI : DV.getFrameIndex()) {
     unsigned FrameReg = 0;
-    const TargetFrameLowering *TFI =
-        Asm->TM.getSubtargetImpl()->getFrameLowering();
+    const TargetFrameLowering *TFI = Asm->MF->getSubtarget().getFrameLowering();
     int Offset = TFI->getFrameIndexReference(*Asm->MF, FI, FrameReg);
-    MachineLocation Location(FrameReg, Offset);
-    addVariableAddress(DV, *VariableDie, Location);
+    assert(Expr != DV.getExpression().end() &&
+           "Wrong number of expressions");
+    DwarfExpr.AddMachineRegIndirect(FrameReg, Offset);
+    DwarfExpr.AddExpression(Expr->begin(), Expr->end());
+    ++Expr;
   }
+  addBlock(*VariableDie, dwarf::DW_AT_location, Loc);
 
   return VariableDie;
 }
@@ -695,7 +702,7 @@ void DwarfCompileUnit::collectDeadVariables(DISubprogram SP) {
   for (unsigned vi = 0, ve = Variables.getNumElements(); vi != ve; ++vi) {
     DIVariable DV(Variables.getElement(vi));
     assert(DV.isVariable());
-    DbgVariable NewVar(DV, DIExpression(nullptr), DD);
+    DbgVariable NewVar(DV, DIExpression(), DD);
     auto VariableDie = constructVariableDIE(NewVar);
     applyVariableAttributes(NewVar, *VariableDie);
     SPDIE->addChild(std::move(VariableDie));
@@ -737,27 +744,22 @@ void DwarfCompileUnit::addVariableAddress(const DbgVariable &DV, DIE &Die,
   else if (DV.isBlockByrefVariable())
     addBlockByrefAddress(DV, Die, dwarf::DW_AT_location, Location);
   else
-    addAddress(Die, dwarf::DW_AT_location, Location,
-               DV.getVariable().isIndirect());
+    addAddress(Die, dwarf::DW_AT_location, Location);
 }
 
 /// Add an address attribute to a die based on the location provided.
 void DwarfCompileUnit::addAddress(DIE &Die, dwarf::Attribute Attribute,
-                                  const MachineLocation &Location,
-                                  bool Indirect) {
+                                  const MachineLocation &Location) {
   DIELoc *Loc = new (DIEValueAllocator) DIELoc();
 
   bool validReg;
-  if (Location.isReg() && !Indirect)
+  if (Location.isReg())
     validReg = addRegisterOpPiece(*Loc, Location.getReg());
   else
     validReg = addRegisterOffset(*Loc, Location.getReg(), Location.getOffset());
 
   if (!validReg)
     return;
-
-  if (!Location.isReg() && Indirect)
-    addUInt(*Loc, dwarf::DW_FORM_data1, dwarf::DW_OP_deref);
 
   // Now attach the location information to the DIE.
   addBlock(Die, Attribute, Loc);
@@ -772,22 +774,20 @@ void DwarfCompileUnit::addComplexAddress(const DbgVariable &DV, DIE &Die,
                                          const MachineLocation &Location) {
   DIELoc *Loc = new (DIEValueAllocator) DIELoc();
   DIEDwarfExpression DwarfExpr(*Asm, *this, *Loc);
-  DIExpression Expr = DV.getExpression();
+  assert(DV.getExpression().size() == 1);
+  DIExpression Expr = DV.getExpression().back();
+  bool ValidReg;
   if (Location.getOffset()) {
-    if (DwarfExpr.AddMachineRegIndirect(Location.getReg(),
-                                        Location.getOffset())) {
-      DwarfExpr.AddExpression(Expr);
-      assert(!DV.getVariable().isIndirect()
-             && "double indirection not handled");
-    }
-  } else {
-    if (DwarfExpr.AddMachineRegExpression(Expr, Location.getReg()))
-      if (DV.getVariable().isIndirect())
-        DwarfExpr.EmitOp(dwarf::DW_OP_deref);
-  }
+    ValidReg = DwarfExpr.AddMachineRegIndirect(Location.getReg(),
+                                               Location.getOffset());
+    if (ValidReg)
+      DwarfExpr.AddExpression(Expr.begin(), Expr.end());
+  } else
+    ValidReg = DwarfExpr.AddMachineRegExpression(Expr, Location.getReg());
 
   // Now attach the location information to the DIE.
-  addBlock(Die, Attribute, Loc);
+  if (ValidReg)
+    addBlock(Die, Attribute, Loc);
 }
 
 /// Add a Dwarf loclistptr attribute data and value.

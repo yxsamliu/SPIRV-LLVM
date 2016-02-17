@@ -21,7 +21,7 @@ entry:
   %a.addr = alloca i32, align 4
   store i32 %a, i32* %a.addr, align 4
   call void @llvm.dbg.declare(metadata i32* %a.addr, metadata !12, metadata !13), !dbg !14
-  %0 = load i32* %a.addr, align 4, !dbg !15
+  %0 = load i32, i32* %a.addr, align 4, !dbg !15
   ret i32 %0, !dbg !16
 }
 
@@ -49,6 +49,6 @@ attributes #1 = { nounwind readnone }
 !11 = !{!"clang version 3.6.0 (trunk)"}
 !12 = !{!"0x101\00a\0016777217\000", !4, !5, !8}  ; [ DW_TAG_arg_variable ] [a] [line 1]
 !13 = !{!"0x102"}                                 ; [ DW_TAG_expression ]
-!14 = !{i32 1, i32 13, !4, null}
-!15 = !{i32 2, i32 10, !4, null}
-!16 = !{i32 2, i32 3, !4, null}
+!14 = !MDLocation(line: 1, column: 13, scope: !4)
+!15 = !MDLocation(line: 2, column: 10, scope: !4)
+!16 = !MDLocation(line: 2, column: 3, scope: !4)

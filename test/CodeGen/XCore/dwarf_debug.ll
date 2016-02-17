@@ -14,7 +14,7 @@ entry:
   %a.addr = alloca i32, align 4
   store i32 %a, i32* %a.addr, align 4
   call void @llvm.dbg.declare(metadata i32* %a.addr, metadata !11, metadata !{!"0x102"}), !dbg !12
-  %0 = load i32* %a.addr, align 4, !dbg !12
+  %0 = load i32, i32* %a.addr, align 4, !dbg !12
   %add = add nsw i32 %0, 1, !dbg !12
   ret i32 %add, !dbg !12
 }
@@ -35,5 +35,5 @@ declare void @llvm.dbg.declare(metadata, metadata, metadata)
 !9 = !{i32 2, !"Dwarf Version", i32 4}
 !10 = !{i32 2, !"Debug Info Version", i32 2}
 !11 = !{!"0x101\00a\0016777218\000", !4, !5, !8} ; [ DW_TAG_arg_variable ]
-!12 = !{i32 2, i32 0, !4, null}
+!12 = !MDLocation(line: 2, scope: !4)
 

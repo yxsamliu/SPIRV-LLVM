@@ -10,8 +10,8 @@ target triple = "x86_64-apple-darwin10"
 define i8* @bar(%struct.a* %myvar) nounwind optsize noinline ssp {
 entry:
   tail call void @llvm.dbg.value(metadata %struct.a* %myvar, i64 0, metadata !8, metadata !{!"0x102"})
-  %0 = getelementptr inbounds %struct.a* %myvar, i64 0, i32 0, !dbg !28 ; <i32*> [#uses=1]
-  %1 = load i32* %0, align 8, !dbg !28            ; <i32> [#uses=1]
+  %0 = getelementptr inbounds %struct.a, %struct.a* %myvar, i64 0, i32 0, !dbg !28 ; <i32*> [#uses=1]
+  %1 = load i32, i32* %0, align 8, !dbg !28            ; <i32> [#uses=1]
   tail call void @foo(i32 %1) nounwind optsize noinline ssp, !dbg !28
   %2 = bitcast %struct.a* %myvar to i8*, !dbg !30 ; <i8*> [#uses=1]
   ret i8* %2, !dbg !30
@@ -52,9 +52,9 @@ declare void @llvm.dbg.value(metadata, i64, metadata, metadata) nounwind readnon
 !25 = !{!"0x101\00argv\0022\000", !19, !1, !22} ; [ DW_TAG_arg_variable ]
 !26 = !{!"0x100\00e\0023\000", !27, !1, !14} ; [ DW_TAG_auto_variable ]
 !27 = !{!"0xb\0022\000\000", !36, !19} ; [ DW_TAG_lexical_block ]
-!28 = !{i32 18, i32 0, !29, null}
+!28 = !MDLocation(line: 18, scope: !29)
 !29 = !{!"0xb\0017\000\001", !36, !9} ; [ DW_TAG_lexical_block ]
-!30 = !{i32 19, i32 0, !29, null}
+!30 = !MDLocation(line: 19, scope: !29)
 !31 = !{!0}
 !32 = !{!5, !9, !19}
 !33 = !{!4}

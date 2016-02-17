@@ -11,12 +11,12 @@ entry:
   call void @llvm.dbg.declare(metadata %struct.S* %s1, metadata !0, metadata !{!"0x102"}), !dbg !16
   %1 = call i32 @_ZN1S3fooEv(%struct.S* %s1) nounwind, !dbg !17 ; <i32> [#uses=1]
   store i32 %1, i32* %0, align 4, !dbg !17
-  %2 = load i32* %0, align 4, !dbg !17            ; <i32> [#uses=1]
+  %2 = load i32, i32* %0, align 4, !dbg !17            ; <i32> [#uses=1]
   store i32 %2, i32* %retval, align 4, !dbg !17
   br label %return, !dbg !17
 
 return:                                           ; preds = %entry
-  %retval1 = load i32* %retval, !dbg !17          ; <i32> [#uses=1]
+  %retval1 = load i32, i32* %retval, !dbg !17          ; <i32> [#uses=1]
   ret i32 %retval1, !dbg !16
 }
 
@@ -30,7 +30,7 @@ entry:
   br label %return, !dbg !21
 
 return:                                           ; preds = %entry
-  %retval1 = load i32* %retval, !dbg !21          ; <i32> [#uses=1]
+  %retval1 = load i32, i32* %retval, !dbg !21          ; <i32> [#uses=1]
   ret i32 %retval1, !dbg !22
 }
 
@@ -55,13 +55,13 @@ declare void @llvm.dbg.declare(metadata, metadata, metadata) nounwind readnone
 !13 = !{!"0x15\00\000\000\000\000\000\000", !25, null, null, !14, null, null, null} ; [ DW_TAG_subroutine_type ] [line 0, size 0, align 0, offset 0] [from ]
 !14 = !{!8, !15}
 !15 = !{!"0xf\00\000\0064\0064\000\0064", !25, !4, !9} ; [ DW_TAG_pointer_type ]
-!16 = !{i32 3, i32 0, !1, null}
-!17 = !{i32 3, i32 0, !3, null}
+!16 = !MDLocation(line: 3, scope: !1)
+!17 = !MDLocation(line: 3, scope: !3)
 !18 = !{!"0x101\00this\003\000", !12, !10, !19} ; [ DW_TAG_arg_variable ]
 !19 = !{!"0x26\00\000\0064\0064\000\0064", !25, !4, !20} ; [ DW_TAG_const_type ]
 !20 = !{!"0xf\00\000\0064\0064\000\000", !25, !4, !9} ; [ DW_TAG_pointer_type ]
-!21 = !{i32 3, i32 0, !12, null}
-!22 = !{i32 3, i32 0, !23, null}
+!21 = !MDLocation(line: 3, scope: !12)
+!22 = !MDLocation(line: 3, scope: !23)
 !23 = !{!"0xb\003\000\000", !26, !12} ; [ DW_TAG_lexical_block ]
 !24 = !{!3, !12}
 !25 = !{!"one.cc", !"/tmp/"}

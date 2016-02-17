@@ -15,19 +15,18 @@
 #include "DwarfExpression.h"
 #include "llvm/ADT/Twine.h"
 #include "llvm/CodeGen/AsmPrinter.h"
+#include "llvm/CodeGen/MachineModuleInfo.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/MC/MCAsmInfo.h"
+#include "llvm/MC/MCRegisterInfo.h"
 #include "llvm/MC/MCSection.h"
 #include "llvm/MC/MCStreamer.h"
 #include "llvm/MC/MCSymbol.h"
 #include "llvm/MC/MachineLocation.h"
 #include "llvm/Support/Dwarf.h"
 #include "llvm/Support/ErrorHandling.h"
-#include "llvm/Target/TargetFrameLowering.h"
 #include "llvm/Target/TargetLoweringObjectFile.h"
 #include "llvm/Target/TargetMachine.h"
-#include "llvm/Target/TargetRegisterInfo.h"
-#include "llvm/Target/TargetSubtargetInfo.h"
 using namespace llvm;
 
 #define DEBUG_TYPE "asm-printer"
@@ -150,7 +149,7 @@ unsigned AsmPrinter::GetSizeOfEncodedValue(unsigned Encoding) const {
   default:
     llvm_unreachable("Invalid encoded value.");
   case dwarf::DW_EH_PE_absptr:
-    return TM.getSubtargetImpl()->getDataLayout()->getPointerSize();
+    return TM.getDataLayout()->getPointerSize();
   case dwarf::DW_EH_PE_udata2:
     return 2;
   case dwarf::DW_EH_PE_udata4:
@@ -228,14 +227,13 @@ void AsmPrinter::EmitDwarfOpPiece(ByteStreamer &Streamer,
 
 /// EmitDwarfRegOp - Emit dwarf register operation.
 void AsmPrinter::EmitDwarfRegOp(ByteStreamer &Streamer,
-                                const MachineLocation &MLoc,
-                                bool Indirect) const {
+                                const MachineLocation &MLoc) const {
   DebugLocDwarfExpression Expr(*this, Streamer);
-  const TargetRegisterInfo *TRI = TM.getSubtargetImpl()->getRegisterInfo();
-  int Reg = TRI->getDwarfRegNum(MLoc.getReg(), false);
+  const MCRegisterInfo *MRI = MMI->getContext().getRegisterInfo();
+  int Reg = MRI->getDwarfRegNum(MLoc.getReg(), false);
   if (Reg < 0) {
     // We assume that pointers are always in an addressable register.
-    if (Indirect || MLoc.isIndirect())
+    if (MLoc.isIndirect())
       // FIXME: We have no reasonable way of handling errors in here. The
       // caller might be in the middle of a dwarf expression. We should
       // probably assert that Reg >= 0 once debug info generation is more
@@ -251,9 +249,7 @@ void AsmPrinter::EmitDwarfRegOp(ByteStreamer &Streamer,
   }
 
   if (MLoc.isIndirect())
-    Expr.AddRegIndirect(Reg, MLoc.getOffset(), Indirect);
-  else if (Indirect)
-    Expr.AddRegIndirect(Reg, 0, false);
+    Expr.AddRegIndirect(Reg, MLoc.getOffset());
   else
     Expr.AddReg(Reg);
 }

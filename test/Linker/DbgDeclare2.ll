@@ -19,22 +19,22 @@ entry:
   br label %for.cond, !dbg !20
 
 for.cond:                                         ; preds = %for.inc, %entry
-  %0 = load i32* %i, align 4, !dbg !20
-  %1 = load i32* %argc.addr, align 4, !dbg !20
+  %0 = load i32, i32* %i, align 4, !dbg !20
+  %1 = load i32, i32* %argc.addr, align 4, !dbg !20
   %cmp = icmp slt i32 %0, %1, !dbg !20
   br i1 %cmp, label %for.body, label %for.end, !dbg !20
 
 for.body:                                         ; preds = %for.cond
-  %2 = load i32* %i, align 4, !dbg !21
+  %2 = load i32, i32* %i, align 4, !dbg !21
   %idxprom = sext i32 %2 to i64, !dbg !21
-  %3 = load i8*** %argv.addr, align 8, !dbg !21
-  %arrayidx = getelementptr inbounds i8** %3, i64 %idxprom, !dbg !21
-  %4 = load i8** %arrayidx, align 8, !dbg !21
+  %3 = load i8**, i8*** %argv.addr, align 8, !dbg !21
+  %arrayidx = getelementptr inbounds i8*, i8** %3, i64 %idxprom, !dbg !21
+  %4 = load i8*, i8** %arrayidx, align 8, !dbg !21
   %call = call i32 @puts(i8* %4), !dbg !21
   br label %for.inc, !dbg !23
 
 for.inc:                                          ; preds = %for.body
-  %5 = load i32* %i, align 4, !dbg !20
+  %5 = load i32, i32* %i, align 4, !dbg !20
   %inc = add nsw i32 %5, 1, !dbg !20
   store i32 %inc, i32* %i, align 4, !dbg !20
   br label %for.cond, !dbg !20
@@ -64,16 +64,16 @@ declare i32 @puts(i8*)
 !12 = !{!"0x26\00\000\000\000\000\000", null, null, !13} ; [ DW_TAG_const_type ]
 !13 = !{!"0x24\00char\000\008\008\000\000\006", null, null} ; [ DW_TAG_base_type ]
 !14 = !{!"0x101\00argc\0016777220\000", !5, !6, !9} ; [ DW_TAG_arg_variable ]
-!15 = !{i32 4, i32 0, !5, null}
+!15 = !MDLocation(line: 4, scope: !5)
 !16 = !{!"0x101\00argv\0033554436\000", !5, !6, !10} ; [ DW_TAG_arg_variable ]
 !17 = !{!"0x100\00i\006\000", !18, !6, !9} ; [ DW_TAG_auto_variable ]
 !18 = !{!"0xb\006\000\001", !26, !19} ; [ DW_TAG_lexical_block ]
 !19 = !{!"0xb\005\000\000", !26, !5} ; [ DW_TAG_lexical_block ]
-!20 = !{i32 6, i32 0, !18, null}
-!21 = !{i32 8, i32 0, !22, null}
+!20 = !MDLocation(line: 6, scope: !18)
+!21 = !MDLocation(line: 8, scope: !22)
 !22 = !{!"0xb\007\000\002", !26, !18} ; [ DW_TAG_lexical_block ]
-!23 = !{i32 9, i32 0, !22, null}
-!24 = !{i32 10, i32 0, !19, null}
+!23 = !MDLocation(line: 9, scope: !22)
+!24 = !MDLocation(line: 10, scope: !19)
 !25 = !{!"main.cpp", !"/private/tmp"}
 !26 = !{!"test.cpp", !"/private/tmp"}
 !27 = !{i32 1, !"Debug Info Version", i32 2}

@@ -30,9 +30,9 @@ target triple = "thumbv7-apple-ios"
 define %struct.B* @_ZN1BC2Ev(%struct.B* %this) unnamed_addr #0 align 2 {
 entry:
   tail call void @llvm.dbg.value(metadata %struct.B* %this, i64 0, metadata !30, metadata !40), !dbg !41
-  %0 = getelementptr inbounds %struct.B* %this, i32 0, i32 0, !dbg !42
+  %0 = getelementptr inbounds %struct.B, %struct.B* %this, i32 0, i32 0, !dbg !42
   %call = tail call %struct.A* @_ZN1AC2Ev(%struct.A* %0) #3, !dbg !42
-  %1 = getelementptr inbounds %struct.B* %this, i32 0, i32 0, i32 0, !dbg !42
+  %1 = getelementptr inbounds %struct.B, %struct.B* %this, i32 0, i32 0, i32 0, !dbg !42
   store i32 (...)** bitcast (i8** getelementptr inbounds ([4 x i8*]* @_ZTV1B, i32 0, i32 2) to i32 (...)**), i32 (...)*** %1, align 4, !dbg !42, !tbaa !43
   ret %struct.B* %this, !dbg !42
 }
@@ -44,9 +44,9 @@ define %struct.B* @_ZN1BC1Ev(%struct.B* %this) unnamed_addr #0 align 2 {
 entry:
   tail call void @llvm.dbg.value(metadata %struct.B* %this, i64 0, metadata !34, metadata !40), !dbg !46
   tail call void @llvm.dbg.value(metadata %struct.B* %this, i64 0, metadata !47, metadata !40) #3, !dbg !49
-  %0 = getelementptr inbounds %struct.B* %this, i32 0, i32 0, !dbg !50
+  %0 = getelementptr inbounds %struct.B, %struct.B* %this, i32 0, i32 0, !dbg !50
   %call.i = tail call %struct.A* @_ZN1AC2Ev(%struct.A* %0) #3, !dbg !50
-  %1 = getelementptr inbounds %struct.B* %this, i32 0, i32 0, i32 0, !dbg !50
+  %1 = getelementptr inbounds %struct.B, %struct.B* %this, i32 0, i32 0, i32 0, !dbg !50
   store i32 (...)** bitcast (i8** getelementptr inbounds ([4 x i8*]* @_ZTV1B, i32 0, i32 2) to i32 (...)**), i32 (...)*** %1, align 4, !dbg !50, !tbaa !43
   ret %struct.B* %this, !dbg !48
 }
@@ -103,13 +103,13 @@ attributes #3 = { nounwind }
 !38 = !{i32 1, !"min_enum_size", i32 4}
 !39 = !{!"clang version 3.6.0 (trunk 224279) (llvm/trunk 224283)"}
 !40 = !{!"0x102"}                                 ; [ DW_TAG_expression ]
-!41 = !{i32 0, i32 0, !28, null}
-!42 = !{i32 9, i32 0, !28, null}
+!41 = !MDLocation(line: 0, scope: !28)
+!42 = !MDLocation(line: 9, scope: !28)
 !43 = !{!44, !44, i64 0}
 !44 = !{!"vtable pointer", !45, i64 0}
 !45 = !{!"Simple C/C++ TBAA"}
-!46 = !{i32 0, i32 0, !32, null}
+!46 = !MDLocation(line: 0, scope: !32)
 !47 = !{!"0x101\00this\0016777216\001088", !28, null, !31, !48} ; [ DW_TAG_arg_variable ] [this] [line 0]
-!48 = !{i32 9, i32 0, !32, null}
-!49 = !{i32 0, i32 0, !28, !48}
-!50 = !{i32 9, i32 0, !28, !48}
+!48 = !MDLocation(line: 9, scope: !32)
+!49 = !MDLocation(line: 0, scope: !28, inlinedAt: !48)
+!50 = !MDLocation(line: 9, scope: !28, inlinedAt: !48)

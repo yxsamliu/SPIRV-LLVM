@@ -45,7 +45,7 @@ entry:
   %call = tail call i32 @_Z3fooi(i32 2), !dbg !22
   %call1 = tail call i32 @_Z4foo2i(i32 1), !dbg !22
   %add = add nsw i32 %call1, %call, !dbg !22
-  %0 = load i32* @global, align 4, !dbg !22, !tbaa !23
+  %0 = load i32, i32* @global, align 4, !dbg !22, !tbaa !23
   %add2 = add nsw i32 %add, %0, !dbg !22
   ret i32 %add2, !dbg !22
 }
@@ -80,9 +80,9 @@ attributes #2 = { nounwind readnone }
 !17 = !{!18}
 !18 = !{!"0x34\00global\00global\00\001\000\001", null, !5, !8, i32* @global, null} ; [ DW_TAG_variable ] [global] [line 1] [def]
 !19 = !{i32 2, !"Dwarf Version", i32 4}
-!20 = !{i32 2, i32 0, !4, null}
-!21 = !{i32 3, i32 0, !11, null}
-!22 = !{i32 6, i32 0, !14, null}
+!20 = !MDLocation(line: 2, scope: !4)
+!21 = !MDLocation(line: 3, scope: !11)
+!22 = !MDLocation(line: 6, scope: !14)
 !23 = !{!"int", !24}
 !24 = !{!"omnipotent char", !25}
 !25 = !{!"Simple C/C++ TBAA"}

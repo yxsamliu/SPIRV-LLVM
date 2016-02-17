@@ -15,9 +15,9 @@ entry:
   %a.addr = alloca %struct.A*, align 8
   store %struct.A* %a, %struct.A** %a.addr, align 8
   call void @llvm.dbg.declare(metadata %struct.A** %a.addr, metadata !16, metadata !{!"0x102"}), !dbg !17
-  %0 = load %struct.A** %a.addr, align 8, !dbg !18
-  %b = getelementptr inbounds %struct.A* %0, i32 0, i32 0, !dbg !18
-  %1 = load i32* %b, align 4, !dbg !18
+  %0 = load %struct.A*, %struct.A** %a.addr, align 8, !dbg !18
+  %b = getelementptr inbounds %struct.A, %struct.A* %0, i32 0, i32 0, !dbg !18
+  %1 = load i32, i32* %b, align 4, !dbg !18
   ret i32 %1, !dbg !18
 }
 
@@ -39,8 +39,8 @@ declare void @llvm.dbg.declare(metadata, metadata, metadata) nounwind readnone
 !12 = !{!13}
 !13 = !{!"0xd\00b\001\0032\0032\000\000", !20, !11, !9} ; [ DW_TAG_member ]
 !16 = !{!"0x101\00a\0016777219\000", !5, !6, !10} ; [ DW_TAG_arg_variable ]
-!17 = !{i32 3, i32 13, !5, null}
-!18 = !{i32 4, i32 3, !19, null}
+!17 = !MDLocation(line: 3, column: 13, scope: !5)
+!18 = !MDLocation(line: 4, column: 3, scope: !19)
 !19 = !{!"0xb\003\0016\000", !20, !5} ; [ DW_TAG_lexical_block ]
 !20 = !{!"foo.cpp", !"/Users/echristo"}
 !21 = !{i32 1, !"Debug Info Version", i32 2}

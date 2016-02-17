@@ -28,7 +28,7 @@ entry:
   %x.addr = alloca float, align 4
   store float %x, float* %x.addr, align 4
   call void @llvm.dbg.declare(metadata float* %x.addr, metadata !16, metadata !17), !dbg !18
-  %0 = load float* %x.addr, align 4, !dbg !19
+  %0 = load float, float* %x.addr, align 4, !dbg !19
   ret float %0, !dbg !19
 }
 
@@ -46,16 +46,16 @@ entry:
   %dst.addr = alloca float*, align 4
   store float* %dst, float** %dst.addr, align 4
   call void @llvm.dbg.declare(metadata float** %dst.addr, metadata !20, metadata !17), !dbg !21
-  %0 = load float** %dst.addr, align 4, !dbg !22
-  %arrayidx = getelementptr inbounds float* %0, i32 0, !dbg !22
-  %1 = load float* %arrayidx, align 4, !dbg !22
+  %0 = load float*, float** %dst.addr, align 4, !dbg !22
+  %arrayidx = getelementptr inbounds float, float* %0, i32 0, !dbg !22
+  %1 = load float, float* %arrayidx, align 4, !dbg !22
   %call = call float @foo(float %1), !dbg !22
 
 ; CHECK-NOT: call float @foo
 ; CHECK: void @llvm.dbg.declare(metadata float* [[x_addr_i]], metadata [[m23:![0-9]+]], metadata !17), !dbg [[m24:![0-9]+]]
 
-  %2 = load float** %dst.addr, align 4, !dbg !22
-  %arrayidx1 = getelementptr inbounds float* %2, i32 0, !dbg !22
+  %2 = load float*, float** %dst.addr, align 4, !dbg !22
+  %arrayidx1 = getelementptr inbounds float, float* %2, i32 0, !dbg !22
   store float %call, float* %arrayidx1, align 4, !dbg !22
   ret void, !dbg !23
 }
@@ -85,12 +85,13 @@ attributes #1 = { nounwind readnone }
 !15 = !{!"clang version 3.6.0 (trunk)"}
 !16 = !{!"0x101\00x\0016777217\000", !4, !5, !8} ; [ DW_TAG_arg_variable ] [x] [line 1]
 !17 = !{!"0x102"}               ; [ DW_TAG_expression ]
-!18 = !{i32 1, i32 17, !4, null}
-!19 = !{i32 3, i32 5, !4, null}
+!18 = !MDLocation(line: 1, column: 17, scope: !4)
+!19 = !MDLocation(line: 3, column: 5, scope: !4)
 !20 = !{!"0x101\00dst\0016777222\000", !9, !5, !12} ; [ DW_TAG_arg_variable ] [dst] [line 6]
-!21 = !{i32 6, i32 17, !9, null}
-!22 = !{i32 8, i32 14, !9, null}
-!23 = !{i32 9, i32 1, !9, null}
+!21 = !MDLocation(line: 6, column: 17, scope: !9)
+!22 = !MDLocation(line: 8, column: 14, scope: !9)
+!23 = !MDLocation(line: 9, column: 1, scope: !9)
 
-; CHECK: [[m23]] = !{!"0x101\00x\0016777217\000", !4, !5, !8, !22} ; [ DW_TAG_arg_variable ] [x] [line 1]
-; CHECK: [[m24]] = !{i32 1, i32 17, !4, !22}
+; CHECK: [[CALL_SITE:![0-9]+]] = distinct !MDLocation(line: 8, column: 14, scope: !9)
+; CHECK: [[m23]] = !{!"0x101\00x\0016777217\000", !4, !5, !8, [[CALL_SITE]]} ; [ DW_TAG_arg_variable ] [x] [line 1]
+; CHECK: [[m24]] = !MDLocation(line: 1, column: 17, scope: !4, inlinedAt: [[CALL_SITE]])

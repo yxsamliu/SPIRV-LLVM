@@ -24,8 +24,8 @@ entry:
   call void @llvm.dbg.declare(metadata i32* %argc.addr, metadata !14, metadata !{!"0x102"}), !dbg !15
   store i8** %argv, i8*** %argv.addr, align 8
   call void @llvm.dbg.declare(metadata i8*** %argv.addr, metadata !16, metadata !{!"0x102"}), !dbg !15
-  %0 = load i32* %argc.addr, align 4, !dbg !17
-  %1 = load i8*** %argv.addr, align 8, !dbg !17
+  %0 = load i32, i32* %argc.addr, align 4, !dbg !17
+  %1 = load i8**, i8*** %argv.addr, align 8, !dbg !17
   call void @test(i32 %0, i8** %1), !dbg !17
   ret i32 0, !dbg !19
 }
@@ -51,10 +51,10 @@ declare void @test(i32, i8**)
 !12 = !{!"0x26\00\000\000\000\000\000", null, null, !13} ; [ DW_TAG_const_type ]
 !13 = !{!"0x24\00char\000\008\008\000\000\006", null, null} ; [ DW_TAG_base_type ]
 !14 = !{!"0x101\00argc\0016777219\000", !5, !6, !9} ; [ DW_TAG_arg_variable ]
-!15 = !{i32 3, i32 0, !5, null}
+!15 = !MDLocation(line: 3, scope: !5)
 !16 = !{!"0x101\00argv\0033554435\000", !5, !6, !10} ; [ DW_TAG_arg_variable ]
-!17 = !{i32 5, i32 0, !18, null}
+!17 = !MDLocation(line: 5, scope: !18)
 !18 = !{!"0xb\004\000\000", !20, !5} ; [ DW_TAG_lexical_block ]
-!19 = !{i32 6, i32 0, !18, null}
+!19 = !MDLocation(line: 6, scope: !18)
 !20 = !{!"main.cpp", !"/private/tmp"}
 !21 = !{i32 1, !"Debug Info Version", i32 2}

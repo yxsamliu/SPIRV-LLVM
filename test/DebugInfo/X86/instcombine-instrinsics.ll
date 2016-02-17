@@ -33,9 +33,9 @@ define void @init() #0 {
   call void @llvm.dbg.declare(metadata %struct.i14** %p, metadata !11, metadata !{!"0x102"}), !dbg !18
   store %struct.i14* null, %struct.i14** %p, align 8, !dbg !18
   %1 = call i32 @foo(%struct.i14** %p), !dbg !19
-  %2 = load %struct.i14** %p, align 8, !dbg !20
-  %3 = getelementptr inbounds %struct.i14* %2, i32 0, i32 0, !dbg !20
-  %4 = load i64* %3, align 8, !dbg !20
+  %2 = load %struct.i14*, %struct.i14** %p, align 8, !dbg !20
+  %3 = getelementptr inbounds %struct.i14, %struct.i14* %2, i32 0, i32 0, !dbg !20
+  %4 = load i64, i64* %3, align 8, !dbg !20
   %5 = or i64 %4, 4, !dbg !20
   store i64 %5, i64* %3, align 8, !dbg !20
   %6 = call i32 @foo(%struct.i14** %p), !dbg !21
@@ -72,8 +72,8 @@ attributes #1 = { nounwind readnone }
 !15 = !{!16}
 !16 = !{!"0xd\00i\002\0064\0064\000\000", !1, !14, !17} ; [ DW_TAG_member ] [i] [line 2, size 64, align 64, offset 0] [from long int]
 !17 = !{!"0x24\00long int\000\0064\0064\000\000\005", null, null} ; [ DW_TAG_base_type ] [long int] [line 0, size 64, align 64, offset 0, enc DW_ATE_signed]
-!18 = !{i32 8, i32 0, !4, null}
-!19 = !{i32 9, i32 0, !4, null}
-!20 = !{i32 10, i32 0, !4, null}
-!21 = !{i32 11, i32 0, !4, null}
-!22 = !{i32 12, i32 0, !4, null}
+!18 = !MDLocation(line: 8, scope: !4)
+!19 = !MDLocation(line: 9, scope: !4)
+!20 = !MDLocation(line: 10, scope: !4)
+!21 = !MDLocation(line: 11, scope: !4)
+!22 = !MDLocation(line: 12, scope: !4)

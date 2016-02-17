@@ -31,33 +31,33 @@ entry:
   br label %while.cond, !dbg !11
 
 while.cond:                                       ; preds = %if.end, %entry
-  %0 = load i32* %i.addr, align 4, !dbg !12
+  %0 = load i32, i32* %i.addr, align 4, !dbg !12
   %cmp = icmp slt i32 %0, 100, !dbg !12
   br i1 %cmp, label %while.body, label %while.end, !dbg !12
 ; CHECK: edge while.cond -> while.body probability is 100 / 101 = 99.0099% [HOT edge]
 ; CHECK: edge while.cond -> while.end probability is 1 / 101 = 0.990099%
 
 while.body:                                       ; preds = %while.cond
-  %1 = load i32* %i.addr, align 4, !dbg !14
+  %1 = load i32, i32* %i.addr, align 4, !dbg !14
   %cmp1 = icmp slt i32 %1, 50, !dbg !14
   br i1 %cmp1, label %if.then, label %if.end, !dbg !14
 ; CHECK: edge while.body -> if.then probability is 5 / 100 = 5%
 ; CHECK: edge while.body -> if.end probability is 95 / 100 = 95% [HOT edge]
 
 if.then:                                          ; preds = %while.body
-  %2 = load i32* %x, align 4, !dbg !17
+  %2 = load i32, i32* %x, align 4, !dbg !17
   %dec = add nsw i32 %2, -1, !dbg !17
   store i32 %dec, i32* %x, align 4, !dbg !17
   br label %if.end, !dbg !17
 
 if.end:                                           ; preds = %if.then, %while.body
-  %3 = load i32* %i.addr, align 4, !dbg !19
+  %3 = load i32, i32* %i.addr, align 4, !dbg !19
   %inc = add nsw i32 %3, 1, !dbg !19
   store i32 %inc, i32* %i.addr, align 4, !dbg !19
   br label %while.cond, !dbg !20
 
 while.end:                                        ; preds = %while.cond
-  %4 = load i32* %x, align 4, !dbg !21
+  %4 = load i32, i32* %x, align 4, !dbg !21
   ret i32 %4, !dbg !21
 }
 
@@ -76,15 +76,15 @@ while.end:                                        ; preds = %while.cond
 !7 = !{i32 2, !"Dwarf Version", i32 4}
 !8 = !{i32 1, !"Debug Info Version", i32 2}
 !9 = !{!"clang version 3.5 "}
-!10 = !{i32 2, i32 0, !4, null}
-!11 = !{i32 3, i32 0, !4, null}
-!12 = !{i32 3, i32 0, !13, null}
+!10 = !MDLocation(line: 2, scope: !4)
+!11 = !MDLocation(line: 3, scope: !4)
+!12 = !MDLocation(line: 3, scope: !13)
 !13 = !{!"0xb\001", !1, !4} ; [ DW_TAG_lexical_block ] [discriminator.c]
-!14 = !{i32 4, i32 0, !15, null}
+!14 = !MDLocation(line: 4, scope: !15)
 !15 = !{!"0xb\004\000\001", !1, !16} ; [ DW_TAG_lexical_block ] [discriminator.c]
 !16 = !{!"0xb\003\000\000", !1, !4} ; [ DW_TAG_lexical_block ] [discriminator.c]
-!17 = !{i32 4, i32 0, !18, null}
+!17 = !MDLocation(line: 4, scope: !18)
 !18 = !{!"0xb\001", !1, !15} ; [ DW_TAG_lexical_block ] [discriminator.c]
-!19 = !{i32 5, i32 0, !16, null}
-!20 = !{i32 6, i32 0, !16, null}
-!21 = !{i32 7, i32 0, !4, null}
+!19 = !MDLocation(line: 5, scope: !16)
+!20 = !MDLocation(line: 6, scope: !16)
+!21 = !MDLocation(line: 7, scope: !4)
