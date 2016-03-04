@@ -342,7 +342,7 @@ private:
       auto CG = &getAnalysis<CallGraphWrapperPass>().getCallGraph();
       auto ACT = &getAnalysis<AssumptionCacheTracker>();
       auto AA = &getAnalysis<AliasAnalysis>();
-      InlineFunctionInfo IFI(CG, M->getDataLayout(), AA, ACT);
+      InlineFunctionInfo IFI(CG, AA, ACT);
       InlineFunction(CI, IFI);
       Inlined = true;
     }

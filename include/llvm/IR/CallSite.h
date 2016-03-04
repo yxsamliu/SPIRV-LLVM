@@ -151,7 +151,7 @@ public:
   IterTy arg_end() const { return (*this)->op_end() - getArgumentEndOffset(); }
   bool arg_empty() const { return arg_end() == arg_begin(); }
   unsigned arg_size() const { return unsigned(arg_end() - arg_begin()); }
-  
+
   /// getType - Return the type of the instruction that generated this call site
   ///
   Type *getType() const { return (*this)->getType(); }
@@ -373,6 +373,7 @@ private:
 class ImmutableCallSite : public CallSiteBase<> {
   typedef CallSiteBase<> Base;
 public:
+  ImmutableCallSite() {}
   ImmutableCallSite(const Value* V) : Base(V) {}
   ImmutableCallSite(const CallInst *CI) : Base(CI) {}
   ImmutableCallSite(const InvokeInst *II) : Base(II) {}

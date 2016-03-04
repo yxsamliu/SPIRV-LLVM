@@ -33,6 +33,7 @@
 #include "llvm/CodeGen/SchedulerRegistry.h"
 #include "llvm/CodeGen/SelectionDAG.h"
 #include "llvm/CodeGen/SelectionDAGISel.h"
+#include "llvm/CodeGen/WinEHFuncInfo.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/Function.h"
@@ -292,7 +293,8 @@ namespace llvm {
     const TargetLowering *TLI = IS->TLI;
     const TargetSubtargetInfo &ST = IS->MF->getSubtarget();
 
-    if (OptLevel == CodeGenOpt::None || ST.useMachineScheduler() ||
+    if (OptLevel == CodeGenOpt::None ||
+        (ST.enableMachineScheduler() && ST.enableMachineSchedDefaultSched()) ||
         TLI->getSchedulingPreference() == Sched::Source)
       return createSourceListDAGScheduler(IS, OptLevel);
     if (TLI->getSchedulingPreference() == Sched::RegPressure)
@@ -594,9 +596,8 @@ bool SelectionDAGISel::runOnMachineFunction(MachineFunction &mf) {
 void SelectionDAGISel::SelectBasicBlock(BasicBlock::const_iterator Begin,
                                         BasicBlock::const_iterator End,
                                         bool &HadTailCall) {
-  // Lower all of the non-terminator instructions. If a call is emitted
-  // as a tail call, cease emitting nodes for this block. Terminators
-  // are handled below.
+  // Lower the instructions. If a call is emitted as a tail call, cease emitting
+  // nodes for this block.
   for (BasicBlock::const_iterator I = Begin; I != End && !SDB->HasTailCall; ++I)
     SDB->visit(*I);
 
@@ -670,8 +671,8 @@ void SelectionDAGISel::CodeGenAndEmitDAG() {
 #endif
   {
     BlockNumber = FuncInfo->MBB->getNumber();
-    BlockName = MF->getName().str() + ":" +
-                FuncInfo->MBB->getBasicBlock()->getName().str();
+    BlockName =
+        (MF->getName() + ":" + FuncInfo->MBB->getBasicBlock()->getName()).str();
   }
   DEBUG(dbgs() << "Initial selection DAG: BB#" << BlockNumber
         << " '" << BlockName << "'\n"; CurDAG->dump());
@@ -988,6 +989,10 @@ void SelectionDAGISel::PrepareEHLandingPad() {
     FuncInfo->InsertPt = MBB->end();
     return;
   }
+  if (MF->getMMI().getPersonalityType() == EHPersonality::MSVC_CXX) {
+    WinEHFuncInfo &FuncInfo = MF->getMMI().getWinEHFuncInfo(MF->getFunction());
+    MF->getMMI().addWinEHState(MBB, FuncInfo.LandingPadStateMap[LPadInst]);
+  }
 
   // Mark exception register as live in.
   if (unsigned Reg = TLI->getExceptionPointerRegister())
@@ -1182,7 +1187,7 @@ void SelectionDAGISel::SelectAllBasicBlocks(const Function &Fn) {
           // Fast isel failed to lower these arguments
           ++NumFastIselFailLowerArguments;
           if (EnableFastISelAbort > 1)
-            llvm_unreachable("FastISel didn't lower all arguments");
+            report_fatal_error("FastISel didn't lower all arguments");
 
           // Use SelectionDAG argument lowering
           LowerArguments(Fn);
@@ -1254,7 +1259,7 @@ void SelectionDAGISel::SelectAllBasicBlocks(const Function &Fn) {
           if (EnableFastISelAbort > 2)
             // FastISel selector couldn't handle something and bailed.
             // For the purpose of debugging, just abort.
-            llvm_unreachable("FastISel didn't select the entire block");
+            report_fatal_error("FastISel didn't select the entire block");
 
           if (!Inst->getType()->isVoidTy() && !Inst->use_empty()) {
             unsigned &R = FuncInfo->ValueMap[Inst];
@@ -1297,7 +1302,7 @@ void SelectionDAGISel::SelectAllBasicBlocks(const Function &Fn) {
         if (ShouldAbort)
           // FastISel selector couldn't handle something and bailed.
           // For the purpose of debugging, just abort.
-          llvm_unreachable("FastISel didn't select the entire block");
+          report_fatal_error("FastISel didn't select the entire block");
 
         NumFastIselFailures += NumFastIselRemaining;
         break;
@@ -1778,9 +1783,23 @@ SelectInlineAsmMemoryOperands(std::vector<SDValue> &Ops) {
     } else {
       assert(InlineAsm::getNumOperandRegisters(Flags) == 1 &&
              "Memory operand with multiple values?");
+
+      unsigned TiedToOperand;
+      if (InlineAsm::isUseOperandTiedToDef(Flags, TiedToOperand)) {
+        // We need the constraint ID from the operand this is tied to.
+        unsigned CurOp = InlineAsm::Op_FirstOperand;
+        Flags = cast<ConstantSDNode>(InOps[CurOp])->getZExtValue();
+        for (; TiedToOperand; --TiedToOperand) {
+          CurOp += InlineAsm::getNumOperandRegisters(Flags)+1;
+          Flags = cast<ConstantSDNode>(InOps[CurOp])->getZExtValue();
+        }
+      }
+
       // Otherwise, this is a memory operand.  Ask the target to select it.
       std::vector<SDValue> SelOps;
-      if (SelectInlineAsmMemoryOperand(InOps[i+1], 'm', SelOps))
+      if (SelectInlineAsmMemoryOperand(InOps[i+1],
+                                       InlineAsm::getMemoryConstraintID(Flags),
+                                       SelOps))
         report_fatal_error("Could not match memory address.  Inline asm"
                            " failure!");
 
@@ -1936,7 +1955,7 @@ SDNode *SelectionDAGISel::Select_INLINEASM(SDNode *N) {
   std::vector<SDValue> Ops(N->op_begin(), N->op_end());
   SelectInlineAsmMemoryOperands(Ops);
 
-  EVT VTs[] = { MVT::Other, MVT::Glue };
+  const EVT VTs[] = {MVT::Other, MVT::Glue};
   SDValue New = CurDAG->getNode(ISD::INLINEASM, SDLoc(N), VTs, Ops);
   New->setNodeId(-1);
   return New.getNode();

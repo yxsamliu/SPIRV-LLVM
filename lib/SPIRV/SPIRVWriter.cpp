@@ -133,7 +133,7 @@ public:
   void transDbgInfo(Value *V, SPIRVValue *BV) {
     if (auto I = dyn_cast<Instruction>(V)) {
       auto DL = I->getDebugLoc();
-      if (!DL.isUnknown()) {
+      if (DL) {
         DILocation DIL(DL.getAsMDNode());
         auto File = BM->getString(DIL.getFilename().str());
         // ToDo: SPIR-V rev.31 cannot add debug info for instructions without ids.
@@ -1215,7 +1215,7 @@ LLVMToSPIRV::translate() {
 
 llvm::IntegerType* LLVMToSPIRV::getSizetType() {
   return IntegerType::getIntNTy(M->getContext(),
-    M->getDataLayout()->getPointerSizeInBits());
+    M->getDataLayout().getPointerSizeInBits());
 }
 
 void
