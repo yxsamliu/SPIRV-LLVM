@@ -83,7 +83,7 @@ void Win64Exception::beginFunction(const MachineFunction *MF) {
               GlobalValue::getRealLinkageName(F->getName()));
 
       // Emit a symbol assignment.
-      Asm->OutStreamer.EmitAssignment(
+      Asm->OutStreamer->EmitAssignment(
           HandlerTypeParentFrameOffset,
           MCConstantExpr::Create(I->second, Asm->OutContext));
     }
@@ -92,14 +92,14 @@ void Win64Exception::beginFunction(const MachineFunction *MF) {
   if (!shouldEmitPersonality && !shouldEmitMoves)
     return;
 
-  Asm->OutStreamer.EmitWinCFIStartProc(Asm->CurrentFnSym);
+  Asm->OutStreamer->EmitWinCFIStartProc(Asm->CurrentFnSym);
 
   if (!shouldEmitPersonality)
     return;
 
   const MCSymbol *PersHandlerSym =
       TLOF.getCFIPersonalitySymbol(Per, *Asm->Mang, Asm->TM, MMI);
-  Asm->OutStreamer.EmitWinEHHandler(PersHandlerSym, true, true);
+  Asm->OutStreamer->EmitWinEHHandler(PersHandlerSym, true, true);
 }
 
 /// endFunction - Gather and emit post-function exception information.
@@ -108,18 +108,22 @@ void Win64Exception::endFunction(const MachineFunction *MF) {
   if (!shouldEmitPersonality && !shouldEmitMoves)
     return;
 
-  // Map all labels and get rid of any dead landing pads.
-  MMI->TidyLandingPads();
+  EHPersonality Per = MMI->getPersonalityType();
+
+  // Get rid of any dead landing pads if we're not using a Windows EH scheme. In
+  // Windows EH schemes, the landing pad is not actually reachable. It only
+  // exists so that we can emit the right table data.
+  if (!isMSVCEHPersonality(Per))
+    MMI->TidyLandingPads();
 
   if (shouldEmitPersonality) {
-    Asm->OutStreamer.PushSection();
+    Asm->OutStreamer->PushSection();
 
     // Emit an UNWIND_INFO struct describing the prologue.
-    Asm->OutStreamer.EmitWinEHHandlerData();
+    Asm->OutStreamer->EmitWinEHHandlerData();
 
     // Emit the tables appropriate to the personality function in use. If we
     // don't recognize the personality, assume it uses an Itanium-style LSDA.
-    EHPersonality Per = MMI->getPersonalityType();
     if (Per == EHPersonality::MSVC_Win64SEH)
       emitCSpecificHandlerTable();
     else if (Per == EHPersonality::MSVC_CXX)
@@ -127,9 +131,9 @@ void Win64Exception::endFunction(const MachineFunction *MF) {
     else
       emitExceptionTable();
 
-    Asm->OutStreamer.PopSection();
+    Asm->OutStreamer->PopSection();
   }
-  Asm->OutStreamer.EmitWinCFIEndProc();
+  Asm->OutStreamer->EmitWinCFIEndProc();
 }
 
 const MCExpr *Win64Exception::createImageRel32(const MCSymbol *Value) {
@@ -202,14 +206,13 @@ void Win64Exception::emitCSpecificHandlerTable() {
   for (const CallSiteEntry &CSE : CallSites) {
     if (!CSE.LPad)
       continue; // Ignore gaps.
-    for (int Selector : CSE.LPad->TypeIds) {
-      // Ignore C++ filter clauses in SEH.
-      // FIXME: Implement cleanup clauses.
-      if (isCatchEHSelector(Selector))
-        ++NumEntries;
-    }
+    NumEntries += CSE.LPad->SEHHandlers.size();
   }
-  Asm->OutStreamer.EmitIntValue(NumEntries, 4);
+  Asm->OutStreamer->EmitIntValue(NumEntries, 4);
+
+  // If there are no actions, we don't need to iterate again.
+  if (NumEntries == 0)
+    return;
 
   // Emit the four-label records for each call site entry. The table has to be
   // sorted in layout order, and the call sites should already be sorted.
@@ -236,36 +239,27 @@ void Win64Exception::emitCSpecificHandlerTable() {
       End = createImageRel32(EHFuncEndSym);
     }
 
-    // These aren't really type info globals, they are actually pointers to
-    // filter functions ordered by selector. The zero selector is used for
-    // cleanups, so slot zero corresponds to selector 1.
-    const std::vector<const GlobalValue *> &SelectorToFilter = MMI->getTypeInfos();
+    // Emit an entry for each action.
+    for (SEHHandler Handler : LPad->SEHHandlers) {
+      Asm->OutStreamer->EmitValue(Begin, 4);
+      Asm->OutStreamer->EmitValue(End, 4);
 
-    // Do a parallel iteration across typeids and clause labels, skipping filter
-    // clauses.
-    size_t NextClauseLabel = 0;
-    for (size_t I = 0, E = LPad->TypeIds.size(); I < E; ++I) {
-      // AddLandingPadInfo stores the clauses in reverse, but there is a FIXME
-      // to change that.
-      int Selector = LPad->TypeIds[E - I - 1];
+      // Emit the filter or finally function pointer, if present. Otherwise,
+      // emit '1' to indicate a catch-all.
+      const Function *F = Handler.FilterOrFinally;
+      if (F)
+        Asm->OutStreamer->EmitValue(createImageRel32(Asm->getSymbol(F)), 4);
+      else
+        Asm->OutStreamer->EmitIntValue(1, 4);
 
-      // Ignore C++ filter clauses in SEH.
-      // FIXME: Implement cleanup clauses.
-      if (!isCatchEHSelector(Selector))
-        continue;
-
-      Asm->OutStreamer.EmitValue(Begin, 4);
-      Asm->OutStreamer.EmitValue(End, 4);
-      if (isCatchEHSelector(Selector)) {
-        assert(unsigned(Selector - 1) < SelectorToFilter.size());
-        const GlobalValue *TI = SelectorToFilter[Selector - 1];
-        if (TI) // Emit the filter function pointer.
-          Asm->OutStreamer.EmitValue(createImageRel32(Asm->getSymbol(TI)), 4);
-        else  // Otherwise, this is a "catch i8* null", or catch all.
-          Asm->OutStreamer.EmitIntValue(1, 4);
-      }
-      MCSymbol *ClauseLabel = LPad->ClauseLabels[NextClauseLabel++];
-      Asm->OutStreamer.EmitValue(createImageRel32(ClauseLabel), 4);
+      // Emit the recovery address, if present. Otherwise, this must be a
+      // finally.
+      const BlockAddress *BA = Handler.RecoverBA;
+      if (BA)
+        Asm->OutStreamer->EmitValue(
+            createImageRel32(Asm->GetBlockAddressSymbol(BA)), 4);
+      else
+        Asm->OutStreamer->EmitIntValue(0, 4);
     }
   }
 }
@@ -273,7 +267,7 @@ void Win64Exception::emitCSpecificHandlerTable() {
 void Win64Exception::emitCXXFrameHandler3Table(const MachineFunction *MF) {
   const Function *F = MF->getFunction();
   const Function *ParentF = MMI->getWinEHParent(F);
-  auto &OS = Asm->OutStreamer;
+  auto &OS = *Asm->OutStreamer;
   WinEHFuncInfo &FuncInfo = MMI->getWinEHFuncInfo(ParentF);
 
   StringRef ParentLinkageName =
@@ -343,7 +337,13 @@ void Win64Exception::emitCXXFrameHandler3Table(const MachineFunction *MF) {
     }
   }
 
-  if (ParentF != F)
+  // Defer emission until we've visited the parent function and all the catch
+  // handlers.  Cleanups don't contribute to the ip2state table yet, so don't
+  // count them.
+  if (ParentF != F && !FuncInfo.CatchHandlerMaxState.count(F))
+    return;
+  ++FuncInfo.NumIPToStateFuncsVisited;
+  if (FuncInfo.NumIPToStateFuncsVisited != FuncInfo.CatchHandlerMaxState.size())
     return;
 
   MCSymbol *UnwindMapXData = nullptr;
@@ -421,11 +421,15 @@ void Win64Exception::emitCXXFrameHandler3Table(const MachineFunction *MF) {
 
       HandlerMaps.push_back(HandlerMapXData);
 
+      int CatchHigh = -1;
+      for (WinEHHandlerType &HT : TBME.HandlerArray)
+        CatchHigh =
+            std::max(CatchHigh, FuncInfo.CatchHandlerMaxState[HT.Handler]);
+
       assert(TBME.TryLow <= TBME.TryHigh);
-      assert(TBME.CatchHigh > TBME.TryHigh);
       OS.EmitIntValue(TBME.TryLow, 4);                    // TryLow
       OS.EmitIntValue(TBME.TryHigh, 4);                   // TryHigh
-      OS.EmitIntValue(TBME.CatchHigh, 4);                 // CatchHigh
+      OS.EmitIntValue(CatchHigh, 4);                      // CatchHigh
       OS.EmitIntValue(TBME.HandlerArray.size(), 4);       // NumCatches
       OS.EmitValue(createImageRel32(HandlerMapXData), 4); // HandlerArray
     }
@@ -450,9 +454,24 @@ void Win64Exception::emitCXXFrameHandler3Table(const MachineFunction *MF) {
         const MCSymbolRefExpr *ParentFrameOffsetRef = MCSymbolRefExpr::Create(
             ParentFrameOffset, MCSymbolRefExpr::VK_None, Asm->OutContext);
 
+        // Get the frame escape label with the offset of the catch object. If
+        // the index is -1, then there is no catch object, and we should emit an
+        // offset of zero, indicating that no copy will occur.
+        const MCExpr *FrameAllocOffsetRef = nullptr;
+        if (HT.CatchObjRecoverIdx >= 0) {
+          MCSymbol *FrameAllocOffset =
+              Asm->OutContext.getOrCreateFrameAllocSymbol(
+                  GlobalValue::getRealLinkageName(ParentF->getName()),
+                  HT.CatchObjRecoverIdx);
+          FrameAllocOffsetRef = MCSymbolRefExpr::Create(
+              FrameAllocOffset, MCSymbolRefExpr::VK_None, Asm->OutContext);
+        } else {
+          FrameAllocOffsetRef = MCConstantExpr::Create(0, Asm->OutContext);
+        }
+
         OS.EmitIntValue(HT.Adjectives, 4);                    // Adjectives
         OS.EmitValue(createImageRel32(HT.TypeDescriptor), 4); // Type
-        OS.EmitIntValue(HT.CatchObjOffset, 4);                // CatchObjOffset
+        OS.EmitValue(FrameAllocOffsetRef, 4);                 // CatchObjOffset
         OS.EmitValue(createImageRel32(HT.Handler), 4);        // Handler
         OS.EmitValue(ParentFrameOffsetRef, 4);                // ParentFrameOffset
       }

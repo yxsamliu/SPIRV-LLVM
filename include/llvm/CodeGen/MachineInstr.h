@@ -246,18 +246,16 @@ public:
 
   /// \brief Return the debug variable referenced by
   /// this DBG_VALUE instruction.
-  DIVariable getDebugVariable() const {
+  const DILocalVariable *getDebugVariable() const {
     assert(isDebugValue() && "not a DBG_VALUE");
-    DIVariable Var(getOperand(2).getMetadata());
-    assert(Var.Verify() && "not a DIVariable");
-    return Var;
+    return cast<DILocalVariable>(getOperand(2).getMetadata());
   }
 
   /// \brief Return the complex address expression referenced by
   /// this DBG_VALUE instruction.
-  DIExpression getDebugExpression() const {
+  const DIExpression *getDebugExpression() const {
     assert(isDebugValue() && "not a DBG_VALUE");
-    return cast<MDExpression>(getOperand(3).getMetadata());
+    return cast<DIExpression>(getOperand(3).getMetadata());
   }
 
   /// emitError - Emit an error referring to the source location of this

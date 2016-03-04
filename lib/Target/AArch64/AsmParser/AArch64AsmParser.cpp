@@ -1972,7 +1972,8 @@ AArch64AsmParser::tryParsePrefetch(OperandVector &Operands) {
 
     bool Valid;
     auto Mapper = AArch64PRFM::PRFMMapper();
-    StringRef Name = Mapper.toString(MCE->getValue(), Valid);
+    StringRef Name = 
+        Mapper.toString(MCE->getValue(), STI.getFeatureBits(), Valid);
     Operands.push_back(AArch64Operand::CreatePrefetch(prfop, Name,
                                                       S, getContext()));
     return MatchOperand_Success;
@@ -1985,7 +1986,8 @@ AArch64AsmParser::tryParsePrefetch(OperandVector &Operands) {
 
   bool Valid;
   auto Mapper = AArch64PRFM::PRFMMapper();
-  unsigned prfop = Mapper.fromString(Tok.getString(), Valid);
+  unsigned prfop = 
+      Mapper.fromString(Tok.getString(), STI.getFeatureBits(), Valid);
   if (!Valid) {
     TokError("pre-fetch hint expected");
     return MatchOperand_ParseFail;
@@ -2090,15 +2092,16 @@ AArch64AsmParser::tryParseFPImm(OperandVector &Operands) {
   const AsmToken &Tok = Parser.getTok();
   if (Tok.is(AsmToken::Real)) {
     APFloat RealVal(APFloat::IEEEdouble, Tok.getString());
+    if (isNegative)
+      RealVal.changeSign();
+
     uint64_t IntVal = RealVal.bitcastToAPInt().getZExtValue();
-    // If we had a '-' in front, toggle the sign bit.
-    IntVal ^= (uint64_t)isNegative << 63;
     int Val = AArch64_AM::getFP64Imm(APInt(64, IntVal));
     Parser.Lex(); // Eat the token.
     // Check for out of range values. As an exception, we let Zero through,
     // as we handle that special case in post-processing before matching in
     // order to use the zero register for it.
-    if (Val == -1 && !RealVal.isZero()) {
+    if (Val == -1 && !RealVal.isPosZero()) {
       TokError("expected compatible register or floating-point constant");
       return MatchOperand_ParseFail;
     }
@@ -2597,7 +2600,8 @@ AArch64AsmParser::tryParseBarrierOperand(OperandVector &Operands) {
     }
     bool Valid;
     auto Mapper = AArch64DB::DBarrierMapper();
-    StringRef Name = Mapper.toString(MCE->getValue(), Valid);
+    StringRef Name = 
+        Mapper.toString(MCE->getValue(), STI.getFeatureBits(), Valid);
     Operands.push_back( AArch64Operand::CreateBarrier(MCE->getValue(), Name,
                                                       ExprLoc, getContext()));
     return MatchOperand_Success;
@@ -2610,7 +2614,8 @@ AArch64AsmParser::tryParseBarrierOperand(OperandVector &Operands) {
 
   bool Valid;
   auto Mapper = AArch64DB::DBarrierMapper();
-  unsigned Opt = Mapper.fromString(Tok.getString(), Valid);
+  unsigned Opt = 
+      Mapper.fromString(Tok.getString(), STI.getFeatureBits(), Valid);
   if (!Valid) {
     TokError("invalid barrier option name");
     return MatchOperand_ParseFail;
@@ -2651,7 +2656,8 @@ AArch64AsmParser::tryParseSysReg(OperandVector &Operands) {
          "register should be -1 if and only if it's unknown");
 
   auto PStateMapper = AArch64PState::PStateMapper();
-  uint32_t PStateField = PStateMapper.fromString(Tok.getString(), IsKnown);
+  uint32_t PStateField = 
+      PStateMapper.fromString(Tok.getString(), STI.getFeatureBits(), IsKnown);
   assert(IsKnown == (PStateField != -1U) &&
          "register should be -1 if and only if it's unknown");
 
@@ -3638,6 +3644,60 @@ bool AArch64AsmParser::MatchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
                                                 Op3.getEndLoc(), getContext());
       }
     }
+  } else if (NumOperands == 4 && Tok == "bfc") {
+    // FIXME: Horrible hack to handle BFC->BFM alias.
+    AArch64Operand &Op1 = static_cast<AArch64Operand &>(*Operands[1]);
+    AArch64Operand LSBOp = static_cast<AArch64Operand &>(*Operands[2]);
+    AArch64Operand WidthOp = static_cast<AArch64Operand &>(*Operands[3]);
+
+    if (Op1.isReg() && LSBOp.isImm() && WidthOp.isImm()) {
+      const MCConstantExpr *LSBCE = dyn_cast<MCConstantExpr>(LSBOp.getImm());
+      const MCConstantExpr *WidthCE = dyn_cast<MCConstantExpr>(WidthOp.getImm());
+
+      if (LSBCE && WidthCE) {
+        uint64_t LSB = LSBCE->getValue();
+        uint64_t Width = WidthCE->getValue();
+
+        uint64_t RegWidth = 0;
+        if (AArch64MCRegisterClasses[AArch64::GPR64allRegClassID].contains(
+                Op1.getReg()))
+          RegWidth = 64;
+        else
+          RegWidth = 32;
+
+        if (LSB >= RegWidth)
+          return Error(LSBOp.getStartLoc(),
+                       "expected integer in range [0, 31]");
+        if (Width < 1 || Width > RegWidth)
+          return Error(WidthOp.getStartLoc(),
+                       "expected integer in range [1, 32]");
+
+        uint64_t ImmR = 0;
+        if (RegWidth == 32)
+          ImmR = (32 - LSB) & 0x1f;
+        else
+          ImmR = (64 - LSB) & 0x3f;
+
+        uint64_t ImmS = Width - 1;
+
+        if (ImmR != 0 && ImmS >= ImmR)
+          return Error(WidthOp.getStartLoc(),
+                       "requested insert overflows register");
+
+        const MCExpr *ImmRExpr = MCConstantExpr::Create(ImmR, getContext());
+        const MCExpr *ImmSExpr = MCConstantExpr::Create(ImmS, getContext());
+        Operands[0] = AArch64Operand::CreateToken(
+              "bfm", false, Op.getStartLoc(), getContext());
+        Operands[2] = AArch64Operand::CreateReg(
+            RegWidth == 32 ? AArch64::WZR : AArch64::XZR, false, SMLoc(),
+            SMLoc(), getContext());
+        Operands[3] = AArch64Operand::CreateImm(
+            ImmRExpr, LSBOp.getStartLoc(), LSBOp.getEndLoc(), getContext());
+        Operands.emplace_back(
+            AArch64Operand::CreateImm(ImmSExpr, WidthOp.getStartLoc(),
+                                      WidthOp.getEndLoc(), getContext()));
+      }
+    }
   } else if (NumOperands == 5) {
     // FIXME: Horrible hack to handle the BFI -> BFM, SBFIZ->SBFM, and
     // UBFIZ -> UBFM aliases.
@@ -3669,8 +3729,7 @@ bool AArch64AsmParser::MatchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
                          "expected integer in range [1, 32]");
 
           uint64_t NewOp3Val = 0;
-          if (AArch64MCRegisterClasses[AArch64::GPR32allRegClassID].contains(
-                  Op1.getReg()))
+          if (RegWidth == 32)
             NewOp3Val = (32 - Op3Val) & 0x1f;
           else
             NewOp3Val = (64 - Op3Val) & 0x3f;

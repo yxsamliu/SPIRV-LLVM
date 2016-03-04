@@ -11,6 +11,21 @@
 //
 //===----------------------------------------------------------------------===//
 
+// *********************************** NOTE ***********************************
+// ** For POWER8 Little Endian, the VSX swap optimization relies on knowing  **
+// ** which VMX and VSX instructions are lane-sensitive and which are not.   **
+// ** A lane-sensitive instruction relies, implicitly or explicitly, on      **
+// ** whether lanes are numbered from left to right.  An instruction like    **
+// ** VADDFP is not lane-sensitive, because each lane of the result vector   **
+// ** relies only on the corresponding lane of the source vectors.  However, **
+// ** an instruction like VMULESB is lane-sensitive, because "even" and      **
+// ** "odd" lanes are different for big-endian and little-endian numbering.  **
+// **                                                                        **
+// ** When adding new VMX and VSX instructions, please consider whether they **
+// ** are lane-sensitive.  If so, they must be added to a switch statement   **
+// ** in PPCVSXSwapRemoval::gatherVectorInstructions().                      **
+// ****************************************************************************
+
 def PPCRegVSRCAsmOperand : AsmOperandClass {
   let Name = "RegVSRC"; let PredicateMethod = "isVSRegNumber";
 }
@@ -41,6 +56,9 @@ def PPClxvd2x  : SDNode<"PPCISD::LXVD2X", SDT_PPClxvd2x,
 def PPCstxvd2x : SDNode<"PPCISD::STXVD2X", SDT_PPCstxvd2x,
                         [SDNPHasChain, SDNPMayStore]>;
 def PPCxxswapd : SDNode<"PPCISD::XXSWAPD", SDT_PPCxxswapd, [SDNPHasChain]>;
+def PPCmfvsr : SDNode<"PPCISD::MFVSR", SDTUnaryOp, []>;
+def PPCmtvsra : SDNode<"PPCISD::MTVSRA", SDTUnaryOp, []>;
+def PPCmtvsrz : SDNode<"PPCISD::MTVSRZ", SDTUnaryOp, []>;
 
 multiclass XX3Form_Rcr<bits<6> opcode, bits<7> xo, dag OOL, dag IOL,
                     string asmbase, string asmstr, InstrItinClass itin,
@@ -946,6 +964,7 @@ def : Pat<(int_ppc_vsx_xvdivdp v2f64:$A, v2f64:$B),
    when the elements are larger than i32.
 */
 def HasP8Vector : Predicate<"PPCSubTarget->hasP8Vector()">;
+def HasDirectMove : Predicate<"PPCSubTarget->hasDirectMove()">;
 let Predicates = [HasP8Vector] in {
 let AddedComplexity = 400 in { // Prefer VSX patterns over non-VSX patterns.
 let isCommutable = 1 in {
@@ -965,3 +984,24 @@ def XXLORC : XX3Form<60, 170,
                      [(set v4i32:$XT, (or v4i32:$XA, (vnot_ppc v4i32:$XB)))]>;
 } // AddedComplexity = 500
 } // HasP8Vector
+
+let Predicates = [HasDirectMove, HasVSX] in {
+// VSX direct move instructions
+def MFVSRD : XX1_RS6_RD5_XO<31, 51, (outs g8rc:$rA), (ins vsfrc:$XT),
+                            "mfvsrd $rA, $XT", IIC_VecGeneral,
+                            [(set i64:$rA, (PPCmfvsr f64:$XT))]>,
+    Requires<[In64BitMode]>;
+def MFVSRWZ : XX1_RS6_RD5_XO<31, 115, (outs gprc:$rA), (ins vsfrc:$XT),
+                             "mfvsrwz $rA, $XT", IIC_VecGeneral,
+                             [(set i32:$rA, (PPCmfvsr f64:$XT))]>;
+def MTVSRD : XX1_RS6_RD5_XO<31, 179, (outs vsfrc:$XT), (ins g8rc:$rA),
+                            "mtvsrd $XT, $rA", IIC_VecGeneral,
+                            [(set f64:$XT, (PPCmtvsra i64:$rA))]>,
+    Requires<[In64BitMode]>;
+def MTVSRWA : XX1_RS6_RD5_XO<31, 211, (outs vsfrc:$XT), (ins gprc:$rA),
+                             "mtvsrwa $XT, $rA", IIC_VecGeneral,
+                             [(set f64:$XT, (PPCmtvsra i32:$rA))]>;
+def MTVSRWZ : XX1_RS6_RD5_XO<31, 243, (outs vsfrc:$XT), (ins gprc:$rA),
+                             "mtvsrwz $XT, $rA", IIC_VecGeneral,
+                             [(set f64:$XT, (PPCmtvsrz i32:$rA))]>;
+} // HasDirectMove, HasVSX

@@ -94,8 +94,6 @@ struct WinEHNumbering {
     return HandlerStack.empty() ? -1 : HandlerStack.back()->getEHState();
   }
 
-  void parseEHActions(const IntrinsicInst *II,
-                      SmallVectorImpl<ActionHandler *> &Actions);
   void createUnwindMapEntry(int ToState, ActionHandler *AH);
   void createTryBlockMapEntry(int TryLow, int TryHigh,
                               ArrayRef<CatchHandler *> Handlers);
@@ -204,10 +202,9 @@ void FunctionLoweringInfo::set(const Function &fn, MachineFunction &mf,
       // during the initial isel pass through the IR so that it is done
       // in a predictable order.
       if (const DbgDeclareInst *DI = dyn_cast<DbgDeclareInst>(I)) {
-        DIVariable DIVar(DI->getVariable());
-        assert((!DIVar || DIVar.isVariable()) &&
-          "Variable in DbgDeclareInst should be either null or a DIVariable.");
-        if (MMI.hasDebugInfo() && DIVar && DI->getDebugLoc()) {
+        assert(DI->getVariable() && "Missing variable");
+        assert(DI->getDebugLoc() && "Missing location");
+        if (MMI.hasDebugInfo()) {
           // Don't handle byval struct arguments or VLAs, for example.
           // Non-byval arguments are handled here (they refer to the stack
           // temporary alloca at this point).
@@ -274,43 +271,80 @@ void FunctionLoweringInfo::set(const Function &fn, MachineFunction &mf,
   }
 
   // Mark landing pad blocks.
-  for (BB = Fn->begin(); BB != EB; ++BB)
+  SmallVector<const LandingPadInst *, 4> LPads;
+  for (BB = Fn->begin(); BB != EB; ++BB) {
     if (const auto *Invoke = dyn_cast<InvokeInst>(BB->getTerminator()))
       MBBMap[Invoke->getSuccessor(1)]->setIsLandingPad();
+    if (BB->isLandingPad())
+      LPads.push_back(BB->getLandingPadInst());
+  }
 
-  // Calculate EH numbers for WinEH.
-  if (fn.getFnAttribute("wineh-parent").getValueAsString() == fn.getName()) {
-    WinEHNumbering Num(MMI.getWinEHFuncInfo(&fn));
-    Num.calculateStateNumbers(fn);
-    // Pop everything on the handler stack.
-    Num.processCallSite(None, ImmutableCallSite());
+  // If this is an MSVC EH personality, we need to do a bit more work.
+  EHPersonality Personality = EHPersonality::Unknown;
+  if (!LPads.empty())
+    Personality = classifyEHPersonality(LPads.back()->getPersonalityFn());
+  if (!isMSVCEHPersonality(Personality))
+    return;
+
+  WinEHFuncInfo *EHInfo = nullptr;
+  if (Personality == EHPersonality::MSVC_Win64SEH) {
+    addSEHHandlersForLPads(LPads);
+  } else if (Personality == EHPersonality::MSVC_CXX) {
+    const Function *WinEHParentFn = MMI.getWinEHParent(&fn);
+    EHInfo = &MMI.getWinEHFuncInfo(WinEHParentFn);
+    if (EHInfo->LandingPadStateMap.empty()) {
+      WinEHNumbering Num(*EHInfo);
+      Num.calculateStateNumbers(*WinEHParentFn);
+      // Pop everything on the handler stack.
+      Num.processCallSite(None, ImmutableCallSite());
+    }
+
+    // Copy the state numbers to LandingPadInfo for the current function, which
+    // could be a handler or the parent.
+    for (const LandingPadInst *LP : LPads) {
+      MachineBasicBlock *LPadMBB = MBBMap[LP->getParent()];
+      MMI.addWinEHState(LPadMBB, EHInfo->LandingPadStateMap[LP]);
+    }
   }
 }
 
-void WinEHNumbering::parseEHActions(const IntrinsicInst *II,
-                                    SmallVectorImpl<ActionHandler *> &Actions) {
-  for (unsigned I = 0, E = II->getNumArgOperands(); I != E;) {
-    uint64_t ActionKind =
-        cast<ConstantInt>(II->getArgOperand(I))->getZExtValue();
-    if (ActionKind == /*catch=*/1) {
-      auto *Selector = cast<Constant>(II->getArgOperand(I + 1));
-      Value *CatchObject = II->getArgOperand(I + 2);
-      Constant *Handler = cast<Constant>(II->getArgOperand(I + 3));
-      I += 4;
-      auto *CH = new CatchHandler(/*BB=*/nullptr, Selector, /*NextBB=*/nullptr);
-      CH->setExceptionVar(CatchObject);
-      CH->setHandlerBlockOrFunc(Handler);
-      Actions.push_back(CH);
-    } else {
-      assert(ActionKind == 0 && "expected a cleanup or a catch action!");
-      Constant *Handler = cast<Constant>(II->getArgOperand(I + 1));
-      I += 2;
-      auto *CH = new CleanupHandler(/*BB=*/nullptr);
-      CH->setHandlerBlockOrFunc(Handler);
-      Actions.push_back(CH);
+void FunctionLoweringInfo::addSEHHandlersForLPads(
+    ArrayRef<const LandingPadInst *> LPads) {
+  MachineModuleInfo &MMI = MF->getMMI();
+
+  // Iterate over all landing pads with llvm.eh.actions calls.
+  for (const LandingPadInst *LP : LPads) {
+    const IntrinsicInst *ActionsCall =
+        dyn_cast<IntrinsicInst>(LP->getNextNode());
+    if (!ActionsCall ||
+        ActionsCall->getIntrinsicID() != Intrinsic::eh_actions)
+      continue;
+
+    // Parse the llvm.eh.actions call we found.
+    MachineBasicBlock *LPadMBB = MBBMap[LP->getParent()];
+    SmallVector<ActionHandler *, 4> Actions;
+    parseEHActions(ActionsCall, Actions);
+
+    // Iterate EH actions from most to least precedence, which means
+    // iterating in reverse.
+    for (auto I = Actions.rbegin(), E = Actions.rend(); I != E; ++I) {
+      ActionHandler *Action = *I;
+      if (auto *CH = dyn_cast<CatchHandler>(Action)) {
+        const auto *Filter =
+            dyn_cast<Function>(CH->getSelector()->stripPointerCasts());
+        assert((Filter || CH->getSelector()->isNullValue()) &&
+               "expected function or catch-all");
+        const auto *RecoverBA =
+            cast<BlockAddress>(CH->getHandlerBlockOrFunc());
+        MMI.addSEHCatchHandler(LPadMBB, Filter, RecoverBA);
+      } else {
+        assert(isa<CleanupHandler>(Action));
+        const auto *Fini = cast<Function>(Action->getHandlerBlockOrFunc());
+        MMI.addSEHCleanupHandler(LPadMBB, Fini);
+      }
     }
+    DeleteContainerPointers(Actions);
   }
-  std::reverse(Actions.begin(), Actions.end());
 }
 
 void WinEHNumbering::createUnwindMapEntry(int ToState, ActionHandler *AH) {
@@ -328,25 +362,24 @@ void WinEHNumbering::createTryBlockMapEntry(int TryLow, int TryHigh,
   WinEHTryBlockMapEntry TBME;
   TBME.TryLow = TryLow;
   TBME.TryHigh = TryHigh;
-  // FIXME: This should be revisited when we want to throw inside a catch
-  // handler.
-  TBME.CatchHigh = INT_MAX;
   assert(TBME.TryLow <= TBME.TryHigh);
-  assert(TBME.CatchHigh > TBME.TryHigh);
   for (CatchHandler *CH : Handlers) {
     WinEHHandlerType HT;
-    auto *GV = cast<GlobalVariable>(CH->getSelector()->stripPointerCasts());
-    // Selectors are always pointers to GlobalVariables with 'struct' type.
-    // The struct has two fields, adjectives and a type descriptor.
-    auto *CS = cast<ConstantStruct>(GV->getInitializer());
-    HT.Adjectives =
-        cast<ConstantInt>(CS->getAggregateElement(0U))->getZExtValue();
-    HT.TypeDescriptor = cast<GlobalVariable>(
-        CS->getAggregateElement(1)->stripPointerCasts());
+    if (CH->getSelector()->isNullValue()) {
+      HT.Adjectives = 0x40;
+      HT.TypeDescriptor = nullptr;
+    } else {
+      auto *GV = cast<GlobalVariable>(CH->getSelector()->stripPointerCasts());
+      // Selectors are always pointers to GlobalVariables with 'struct' type.
+      // The struct has two fields, adjectives and a type descriptor.
+      auto *CS = cast<ConstantStruct>(GV->getInitializer());
+      HT.Adjectives =
+          cast<ConstantInt>(CS->getAggregateElement(0U))->getZExtValue();
+      HT.TypeDescriptor =
+          cast<GlobalVariable>(CS->getAggregateElement(1)->stripPointerCasts());
+    }
     HT.Handler = cast<Function>(CH->getHandlerBlockOrFunc());
-    // FIXME: We don't support catching objects yet!
-    HT.CatchObjIdx = INT_MAX;
-    HT.CatchObjOffset = 0;
+    HT.CatchObjRecoverIdx = CH->getExceptionVarIndex();
     TBME.HandlerArray.push_back(HT);
   }
   FuncInfo.TryBlockMap.push_back(TBME);
@@ -469,6 +502,8 @@ void WinEHNumbering::calculateStateNumbers(const Function &F) {
     ActionList.clear();
     FuncInfo.LandingPadStateMap[LPI] = currentEHNumber();
   }
+
+  FuncInfo.CatchHandlerMaxState[&F] = NextState - 1;
 }
 
 /// clear - Clear out all the function-specific state. This returns this
@@ -677,8 +712,7 @@ void llvm::ComputeUsesVAFloatArgument(const CallInst &I,
   if (FT->isVarArg() && !MMI->usesVAFloatArgument()) {
     for (unsigned i = 0, e = I.getNumArgOperands(); i != e; ++i) {
       Type* T = I.getArgOperand(i)->getType();
-      for (po_iterator<Type*> i = po_begin(T), e = po_end(T);
-           i != e; ++i) {
+      for (auto i : post_order(T)) {
         if (i->isFloatingPointTy()) {
           MMI->setUsesVAFloatArgument(true);
           return;

@@ -198,7 +198,7 @@ void SystemZAsmPrinter::EmitInstruction(const MachineInstr *MI) {
     Lower.lower(MI, LoweredMI);
     break;
   }
-  EmitToStreamer(OutStreamer, LoweredMI);
+  EmitToStreamer(*OutStreamer, LoweredMI);
 }
 
 // Convert a SystemZ-specific constant pool modifier into the associated
@@ -224,7 +224,7 @@ EmitMachineConstantPoolValue(MachineConstantPoolValue *MCPV) {
                             OutContext);
   uint64_t Size = TM.getDataLayout()->getTypeAllocSize(ZCPV->getType());
 
-  OutStreamer.EmitValue(Expr, Size);
+  OutStreamer->EmitValue(Expr, Size);
 }
 
 bool SystemZAsmPrinter::PrintAsmOperand(const MachineInstr *MI,
@@ -253,29 +253,6 @@ bool SystemZAsmPrinter::PrintAsmMemoryOperand(const MachineInstr *MI,
                                    MI->getOperand(OpNo + 1).getImm(),
                                    MI->getOperand(OpNo + 2).getReg(), OS);
   return false;
-}
-
-void SystemZAsmPrinter::EmitEndOfAsmFile(Module &M) {
-  if (Triple(TM.getTargetTriple()).isOSBinFormatELF()) {
-    auto &TLOFELF =
-      static_cast<const TargetLoweringObjectFileELF &>(getObjFileLowering());
-
-    MachineModuleInfoELF &MMIELF = MMI->getObjFileInfo<MachineModuleInfoELF>();
-
-    // Output stubs for external and common global variables.
-    MachineModuleInfoELF::SymbolListTy Stubs = MMIELF.GetGVStubList();
-    if (!Stubs.empty()) {
-      OutStreamer.SwitchSection(TLOFELF.getDataRelSection());
-      const DataLayout *TD = TM.getDataLayout();
-
-      for (unsigned i = 0, e = Stubs.size(); i != e; ++i) {
-        OutStreamer.EmitLabel(Stubs[i].first);
-        OutStreamer.EmitSymbolValue(Stubs[i].second.getPointer(),
-                                    TD->getPointerSize(0));
-      }
-      Stubs.clear();
-    }
-  }
 }
 
 // Force static initialization.

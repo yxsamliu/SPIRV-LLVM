@@ -217,7 +217,7 @@ static bool containsUnconditionalCallSafepoint(Loop *L, BasicBlock *Header,
   BasicBlock *Current = Pred;
   while (true) {
     for (Instruction &I : *Current) {
-      if (CallSite CS = &I)
+      if (auto CS = CallSite(&I))
         // Note: Technically, needing a safepoint isn't quite the right
         // condition here.  We should instead be checking if the target method
         // has an
@@ -424,11 +424,17 @@ static Instruction *findLocationForEntrySafepoint(Function &F,
     // We need to stop going forward as soon as we see a call that can
     // grow the stack (i.e. the call target has a non-zero frame
     // size).
-    if (CallSite CS = cursor) {
-      (void)CS; // Silence an unused variable warning by gcc 4.8.2
+    if (CallSite(cursor)) {
       if (IntrinsicInst *II = dyn_cast<IntrinsicInst>(cursor)) {
         // llvm.assume(...) are not really calls.
         if (II->getIntrinsicID() == Intrinsic::assume) {
+          continue;
+        }
+        // llvm.frameescape() intrinsic is not a real call. The intrinsic can 
+        // exist only in the entry block.
+        // Inserting a statepoint before llvm.frameescape() may split the 
+        // entry block, and push the intrinsic out of the entry block.
+        if (II->getIntrinsicID() == Intrinsic::frameescape) {
           continue;
         }
       }

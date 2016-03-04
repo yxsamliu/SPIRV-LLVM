@@ -112,8 +112,6 @@ public:
   /// a particular register.
   SmallBitVector UsedByIndices;
 
-  RegSortData() {}
-
   void print(raw_ostream &OS) const;
   void dump() const;
 };
@@ -1384,9 +1382,6 @@ static bool isAMCompletelyFolded(const TargetTransformInfo &TTI,
   switch (Kind) {
   case LSRUse::Address:
     return TTI.isLegalAddressingMode(AccessTy, BaseGV, BaseOffset, HasBaseReg, Scale);
-
-    // Otherwise, just guess that reg+reg addressing is legal.
-    //return ;
 
   case LSRUse::ICmpZero:
     // There's not even a target hook for querying whether it would be legal to

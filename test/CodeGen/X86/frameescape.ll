@@ -12,11 +12,11 @@ define void @print_framealloc_from_fp(i8* %fp) {
   %a.i8 = call i8* @llvm.framerecover(i8* bitcast (void()* @alloc_func to i8*), i8* %fp, i32 0)
   %a = bitcast i8* %a.i8 to i32*
   %a.val = load i32, i32* %a
-  call i32 (i8*, ...)* @printf(i8* getelementptr ([10 x i8], [10 x i8]* @str, i32 0, i32 0), i32 %a.val)
+  call i32 (i8*, ...) @printf(i8* getelementptr ([10 x i8], [10 x i8]* @str, i32 0, i32 0), i32 %a.val)
   %b.i8 = call i8* @llvm.framerecover(i8* bitcast (void()* @alloc_func to i8*), i8* %fp, i32 1)
   %b = bitcast i8* %b.i8 to i32*
   %b.val = load i32, i32* %b
-  call i32 (i8*, ...)* @printf(i8* getelementptr ([10 x i8], [10 x i8]* @str, i32 0, i32 0), i32 %b.val)
+  call i32 (i8*, ...) @printf(i8* getelementptr ([10 x i8], [10 x i8]* @str, i32 0, i32 0), i32 %b.val)
   store i32 42, i32* %b
   ret void
 }
@@ -37,15 +37,15 @@ define void @print_framealloc_from_fp(i8* %fp) {
 ; X86: pushl   %esi
 ; X86: subl    $8, %esp
 ; X86: movl    16(%esp), %esi
-; X86: movl    _Lalloc_func$frame_escape_0(%esi), %eax
+; X86: movl    Lalloc_func$frame_escape_0(%esi), %eax
 ; X86: movl    %eax, 4(%esp)
 ; X86: movl    $_str, (%esp)
 ; X86: calll   _printf
-; X86: movl    _Lalloc_func$frame_escape_1(%esi), %eax
+; X86: movl    Lalloc_func$frame_escape_1(%esi), %eax
 ; X86: movl    %eax, 4(%esp)
 ; X86: movl    $_str, (%esp)
 ; X86: calll   _printf
-; X86: movl    $42, _Lalloc_func$frame_escape_1(%esi)
+; X86: movl    $42, Lalloc_func$frame_escape_1(%esi)
 ; X86: addl    $8, %esp
 ; X86: popl    %esi
 ; X86: retl
@@ -53,7 +53,7 @@ define void @print_framealloc_from_fp(i8* %fp) {
 define void @alloc_func() {
   %a = alloca i32
   %b = alloca i32
-  call void (...)* @llvm.frameescape(i32* %a, i32* %b)
+  call void (...) @llvm.frameescape(i32* %a, i32* %b)
   store i32 42, i32* %a
   store i32 13, i32* %b
   %fp = call i8* @llvm.frameaddress(i32 0)
@@ -97,7 +97,7 @@ define i32 @main() {
 define void @alloc_func_no_frameaddr() {
   %a = alloca i32
   %b = alloca i32
-  call void (...)* @llvm.frameescape(i32* %a, i32* %b)
+  call void (...) @llvm.frameescape(i32* %a, i32* %b)
   store i32 42, i32* %a
   store i32 13, i32* %b
   call void @print_framealloc_from_fp(i8* null)

@@ -31,26 +31,6 @@ namespace llvm {
 class FunctionType;
 class LLVMContext;
 
-// Traits for intrusive list of basic blocks...
-template<> struct ilist_traits<BasicBlock>
-  : public SymbolTableListTraits<BasicBlock, Function> {
-
-  // createSentinel is used to get hold of the node that marks the end of the
-  // list... (same trick used here as in ilist_traits<Instruction>)
-  BasicBlock *createSentinel() const {
-    return static_cast<BasicBlock*>(&Sentinel);
-  }
-  static void destroySentinel(BasicBlock*) {}
-
-  BasicBlock *provideInitialHead() const { return createSentinel(); }
-  BasicBlock *ensureHead(BasicBlock*) const { return createSentinel(); }
-  static void noteHead(BasicBlock*, BasicBlock*) {}
-
-  static ValueSymbolTable *getSymTab(Function *ItemParent);
-private:
-  mutable ilist_half_node<BasicBlock> Sentinel;
-};
-
 template<> struct ilist_traits<Argument>
   : public SymbolTableListTraits<Argument, Function> {
 
@@ -86,6 +66,7 @@ private:
   mutable ArgumentListType ArgumentList;  ///< The formal arguments
   ValueSymbolTable *SymTab;               ///< Symbol table of args/instructions
   AttributeSet AttributeSets;             ///< Parameter attributes
+  FunctionType *Ty;
 
   /*
    * Value::SubclassData
@@ -95,6 +76,17 @@ private:
    * bit 2  : HasPrologueData
    * bit 3-6: CallingConvention
    */
+
+  /// Bits from GlobalObject::GlobalObjectSubclassData.
+  enum {
+    /// Whether this function is materializable.
+    IsMaterializableBit = 1 << 0,
+    HasMetadataHashEntryBit = 1 << 1
+  };
+  void setGlobalObjectBit(unsigned Mask, bool Value) {
+    setGlobalObjectSubClassData((~Mask & getGlobalObjectSubClassData()) |
+                                (Value ? Mask : 0u));
+  }
 
   friend class SymbolTableListTraits<Function, Module>;
 
@@ -133,7 +125,7 @@ public:
     return new(0) Function(Ty, Linkage, N, M);
   }
 
-  ~Function();
+  ~Function() override;
 
   Type *getReturnType() const;           // Return the type of the ret val
   FunctionType *getFunctionType() const; // Return the FunctionType for me
@@ -241,6 +233,10 @@ public:
 
   /// @brief adds the dereferenceable attribute to the list of attributes.
   void addDereferenceableAttr(unsigned i, uint64_t Bytes);
+
+  /// @brief adds the dereferenceable_or_null attribute to the list of
+  /// attributes.
+  void addDereferenceableOrNullAttr(unsigned i, uint64_t Bytes);
 
   /// @brief Extract the alignment for a call or parameter (0=unknown).
   unsigned getParamAlignment(unsigned i) const {
@@ -472,6 +468,10 @@ public:
   Constant *getPrologueData() const;
   void setPrologueData(Constant *PrologueData);
 
+  /// Print the function to an output stream with an optional
+  /// AssemblyAnnotationWriter.
+  void print(raw_ostream &OS, AssemblyAnnotationWriter *AAW = nullptr) const;
+
   /// viewCFG - This function is meant for use from the debugger.  You can just
   /// say 'call F->viewCFG()' and a ghostview window should pop up from the
   /// program, displaying the CFG of the current function with the code for each
@@ -522,12 +522,50 @@ public:
   /// setjmp or other function that gcc recognizes as "returning twice".
   bool callsFunctionThatReturnsTwice() const;
 
+  /// \brief Check if this has any metadata.
+  bool hasMetadata() const { return hasMetadataHashEntry(); }
+
+  /// \brief Get the current metadata attachment, if any.
+  ///
+  /// Returns \c nullptr if such an attachment is missing.
+  /// @{
+  MDNode *getMetadata(unsigned KindID) const;
+  MDNode *getMetadata(StringRef Kind) const;
+  /// @}
+
+  /// \brief Set a particular kind of metadata attachment.
+  ///
+  /// Sets the given attachment to \c MD, erasing it if \c MD is \c nullptr or
+  /// replacing it if it already exists.
+  /// @{
+  void setMetadata(unsigned KindID, MDNode *MD);
+  void setMetadata(StringRef Kind, MDNode *MD);
+  /// @}
+
+  /// \brief Get all current metadata attachments.
+  void
+  getAllMetadata(SmallVectorImpl<std::pair<unsigned, MDNode *>> &MDs) const;
+
+  /// \brief Drop metadata not in the given list.
+  ///
+  /// Drop all metadata from \c this not included in \c KnownIDs.
+  void dropUnknownMetadata(ArrayRef<unsigned> KnownIDs);
+
 private:
   // Shadow Value::setValueSubclassData with a private forwarding method so that
   // subclasses cannot accidentally use it.
   void setValueSubclassData(unsigned short D) {
     Value::setValueSubclassData(D);
   }
+
+  bool hasMetadataHashEntry() const {
+    return getGlobalObjectSubClassData() & HasMetadataHashEntryBit;
+  }
+  void setHasMetadataHashEntry(bool HasEntry) {
+    setGlobalObjectBit(HasMetadataHashEntryBit, HasEntry);
+  }
+
+  void clearMetadata();
 };
 
 inline ValueSymbolTable *
