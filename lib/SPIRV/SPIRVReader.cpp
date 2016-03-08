@@ -200,24 +200,21 @@ public:
         DEBUG_METADATA_VERSION);
   }
 
-  DIFile getDIFile(const std::string &FileName){
+  DIFile *getDIFile(const std::string &FileName){
     return getOrInsert(FileMap, FileName, [=](){
       std::string BaseName;
       std::string Path;
       splitFileName(FileName, BaseName, Path);
-      if (!BaseName.empty())
-        return Builder.createFile(BaseName, Path);
-      else
-        return DIFile();
+      return Builder.createFile(BaseName, Path);
     });
   }
 
-  DISubprogram getDISubprogram(SPIRVFunction *SF, Function *F){
+  DISubprogram *getDISubprogram(SPIRVFunction *SF, Function *F){
     return getOrInsert(FuncMap, F, [=](){
       auto DF = getDIFile(SpDbg.getFunctionFileStr(SF));
       auto FN = F->getName();
       auto LN = SpDbg.getFunctionLineNo(SF);
-      Metadata *Args[] = {DIType()};
+      SmallVector<Metadata *,1> Args;
       return Builder.createFunction(DF, FN, FN, DF, LN,
         Builder.createSubroutineType(DF, Builder.getOrCreateTypeArray(Args)),
         Function::isInternalLinkage(F->getLinkage()),
@@ -253,8 +250,8 @@ private:
   SPIRVDbgInfo SpDbg;
   DIBuilder Builder;
   bool Enable;
-  std::unordered_map<std::string, DIFile> FileMap;
-  std::unordered_map<Function *, DISubprogram> FuncMap;
+  std::unordered_map<std::string, DIFile *> FileMap;
+  std::unordered_map<Function *, DISubprogram *> FuncMap;
 
   void splitFileName(const std::string &FileName,
       std::string &BaseName,
@@ -1428,14 +1425,15 @@ SPIRVToLLVM::transValueWithoutDecoration(SPIRVValue *BV, Function *F,
       Index.insert(Index.begin(), getInt32(M, 0));
     auto IsInbound = AC->isInBounds();
     Value *V = nullptr;
+	auto PointeeT = transType(BV->getType()->getPointerElementType());
     if (BB) {
-      auto GEP = GetElementPtrInst::Create(transType(BV->getType()->getPointerElementType()),
+      auto GEP = GetElementPtrInst::Create(PointeeT,
 		Base, Index, BV->getName(), BB);
       GEP->setIsInBounds(IsInbound);
       V = GEP;
     } else {
-      V = ConstantExpr::getGetElementPtr(dyn_cast<Constant>(Base), Index,
-          IsInbound);
+      V = ConstantExpr::getGetElementPtr(PointeeT,
+		  dyn_cast<Constant>(Base), Index, IsInbound);
     }
     return mapValue(BV, V);
     }

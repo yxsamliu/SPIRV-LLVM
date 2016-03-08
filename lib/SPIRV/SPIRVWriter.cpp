@@ -132,20 +132,20 @@ public:
 
   void transDbgInfo(Value *V, SPIRVValue *BV) {
     if (auto I = dyn_cast<Instruction>(V)) {
-      auto DL = I->getDebugLoc();
-      if (DL) {
-        DILocation DIL(DL.getAsMDNode());
-        auto File = BM->getString(DIL.getFilename().str());
+      auto DI = I->getDebugLoc();
+      if (DI) {
+		const DILocation *DIL = DI;
+        auto File = BM->getString(DIL->getFilename().str());
         // ToDo: SPIR-V rev.31 cannot add debug info for instructions without ids.
         // This limitation needs to be addressed.
         if (!BV->hasId())
           return;
-        BM->addLine(BV, File, DIL.getLineNumber(), DIL.getColumnNumber());
+        BM->addLine(BV, File, DIL->getLine(), DIL->getColumn());
       }
     } else if (auto F = dyn_cast<Function>(V)) {
       if (auto DIS = getDISubprogram(F)) {
-        auto File = BM->getString(DIS.getFilename().str());
-        BM->addLine(BV, File, DIS.getLineNumber(), 0);
+        auto File = BM->getString(DIS->getFilename().str());
+        BM->addLine(BV, File, DIS->getLine(), 0);
       }
     }
   }
