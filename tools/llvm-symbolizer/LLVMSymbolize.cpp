@@ -29,6 +29,11 @@
 #include <sstream>
 #include <stdlib.h>
 
+#if defined(_MSC_VER)
+#include <Windows.h>
+#include <DbgHelp.h>
+#endif
+
 namespace llvm {
 namespace symbolize {
 
@@ -108,9 +113,11 @@ void ModuleInfo::addSymbol(const SymbolRef &Symbol, DataExtractor *OpdExtractor,
   // occupies the memory range up to the following symbol.
   if (isa<MachOObjectFile>(Module))
     SymbolSize = 0;
-  else if (error(Symbol.getSize(SymbolSize)) ||
-           SymbolSize == UnknownAddressOrSize)
-    return;
+  else {
+    SymbolSize = Symbol.getSize();
+    if (SymbolSize == UnknownAddressOrSize)
+      return;
+  }
   StringRef SymbolName;
   if (error(Symbol.getName(SymbolName)))
     return;
@@ -471,8 +478,10 @@ LLVMSymbolizer::getOrCreateModuleInfo(const std::string &ModuleName) {
     std::unique_ptr<IPDBSession> Session;
     PDB_ErrorCode Error = loadDataForEXE(PDB_ReaderType::DIA,
                                          Objects.first->getFileName(), Session);
-    if (Error == PDB_ErrorCode::Success)
-      Context = new PDBContext(*CoffObject, std::move(Session));
+    if (Error == PDB_ErrorCode::Success) {
+      Context = new PDBContext(*CoffObject, std::move(Session),
+                               Opts.RelativeAddresses);
+    }
   }
   if (!Context)
     Context = new DWARFContextInMemory(*Objects.second);
@@ -522,7 +531,17 @@ std::string LLVMSymbolizer::DemangleName(const std::string &Name) {
   free(DemangledName);
   return Result;
 #else
-  return Name;
+  char DemangledName[1024] = {0};
+  DWORD result = ::UnDecorateSymbolName(
+      Name.c_str(), DemangledName, 1023,
+      UNDNAME_NO_ACCESS_SPECIFIERS |       // Strip public, private, protected
+          UNDNAME_NO_ALLOCATION_LANGUAGE | // Strip __thiscall, __stdcall, etc
+          UNDNAME_NO_THROW_SIGNATURES |    // Strip throw() specifications
+          UNDNAME_NO_MEMBER_TYPE |      // Strip virtual, static, etc specifiers
+          UNDNAME_NO_MS_KEYWORDS |      // Strip all MS extension keywords
+          UNDNAME_NO_FUNCTION_RETURNS); // Strip function return types
+
+  return (result == 0) ? Name : std::string(DemangledName);
 #endif
 }
 

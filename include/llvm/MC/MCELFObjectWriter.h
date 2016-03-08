@@ -20,9 +20,7 @@ class MCAssembler;
 class MCFixup;
 class MCFragment;
 class MCObjectWriter;
-class MCSectionData;
 class MCSymbol;
-class MCSymbolData;
 class MCValue;
 class raw_pwrite_stream;
 
@@ -70,13 +68,13 @@ public:
   virtual unsigned GetRelocType(const MCValue &Target, const MCFixup &Fixup,
                                 bool IsPCRel) const = 0;
 
-  virtual bool needsRelocateWithSymbol(const MCSymbolData &SD,
+  virtual bool needsRelocateWithSymbol(const MCSymbol &Sym,
                                        unsigned Type) const;
 
   virtual void sortRelocs(const MCAssembler &Asm,
                           std::vector<ELFRelocationEntry> &Relocs);
 
-  /// @name Accessors
+  /// \name Accessors
   /// @{
   uint8_t getOSABI() const { return OSABI; }
   uint16_t getEMachine() const { return EMachine; }
