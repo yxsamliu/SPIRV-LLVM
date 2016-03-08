@@ -59,6 +59,7 @@ def SDT_ARMThreadPointer : SDTypeProfile<1, 0, [SDTCisPtrTy<0>]>;
 def SDT_ARMEH_SJLJ_Setjmp : SDTypeProfile<1, 2, [SDTCisInt<0>, SDTCisPtrTy<1>,
                                                  SDTCisInt<2>]>;
 def SDT_ARMEH_SJLJ_Longjmp: SDTypeProfile<0, 2, [SDTCisPtrTy<0>, SDTCisInt<1>]>;
+def SDT_ARMEH_SJLJ_SetupDispatch: SDTypeProfile<0, 0, []>;
 
 def SDT_ARMMEMBARRIER     : SDTypeProfile<0, 1, [SDTCisInt<0>]>;
 
@@ -72,10 +73,6 @@ def SDT_ARMBFI : SDTypeProfile<1, 3, [SDTCisVT<0, i32>, SDTCisVT<1, i32>,
 
 def SDT_ARMVMAXNM : SDTypeProfile<1, 2, [SDTCisFP<0>, SDTCisFP<1>, SDTCisFP<2>]>;
 def SDT_ARMVMINNM : SDTypeProfile<1, 2, [SDTCisFP<0>, SDTCisFP<1>, SDTCisFP<2>]>;
-
-def SDT_ARMMCOPY  : SDTypeProfile<2, 3, [SDTCisVT<0, i32>, SDTCisVT<1, i32>,
-                                         SDTCisVT<2, i32>, SDTCisVT<3, i32>,
-                                         SDTCisVT<4, i32>]>;
 
 def SDTBinaryArithWithFlags : SDTypeProfile<2, 2,
                                             [SDTCisSameAs<0, 2>,
@@ -167,6 +164,9 @@ def ARMeh_sjlj_setjmp: SDNode<"ARMISD::EH_SJLJ_SETJMP",
 def ARMeh_sjlj_longjmp: SDNode<"ARMISD::EH_SJLJ_LONGJMP",
                                SDT_ARMEH_SJLJ_Longjmp,
                                [SDNPHasChain, SDNPSideEffect]>;
+def ARMeh_sjlj_setup_dispatch: SDNode<"ARMISD::EH_SJLJ_SETUP_DISPATCH",
+                                      SDT_ARMEH_SJLJ_SetupDispatch,
+                                      [SDNPHasChain, SDNPSideEffect]>;
 
 def ARMMemBarrierMCR  : SDNode<"ARMISD::MEMBARRIER_MCR", SDT_ARMMEMBARRIER,
                                [SDNPHasChain, SDNPSideEffect]>;
@@ -182,10 +182,6 @@ def ARMbfi           : SDNode<"ARMISD::BFI", SDT_ARMBFI>;
 
 def ARMvmaxnm        : SDNode<"ARMISD::VMAXNM", SDT_ARMVMAXNM, []>;
 def ARMvminnm        : SDNode<"ARMISD::VMINNM", SDT_ARMVMINNM, []>;
-
-def ARMmcopy : SDNode<"ARMISD::MCOPY", SDT_ARMMCOPY,
-                      [SDNPHasChain, SDNPInGlue, SDNPOutGlue,
-                       SDNPMayStore, SDNPMayLoad]>;
 
 //===----------------------------------------------------------------------===//
 // ARM Instruction Predicate Definitions.
@@ -314,8 +310,8 @@ def HasSlowVDUP32 : Predicate<"Subtarget->isSwift()">;
 def UseVMOVSR : Predicate<"Subtarget->isCortexA9() || !Subtarget->useNEONForSinglePrecisionFP()">;
 def DontUseVMOVSR : Predicate<"!Subtarget->isCortexA9() && Subtarget->useNEONForSinglePrecisionFP()">;
 
-def IsLE             : Predicate<"getTargetLowering()->isLittleEndian()">;
-def IsBE             : Predicate<"getTargetLowering()->isBigEndian()">;
+def IsLE             : Predicate<"MF->getDataLayout().isLittleEndian()">;
+def IsBE             : Predicate<"MF->getDataLayout().isBigEndian()">;
 
 //===----------------------------------------------------------------------===//
 // ARM Flag Definitions.
@@ -4586,13 +4582,6 @@ let usesCustomInserter = 1 in {
       [(ARMcopystructbyval GPR:$dst, GPR:$src, imm:$size, imm:$alignment)]>;
 }
 
-let hasPostISelHook = 1 in {
-    def MCOPY : PseudoInst<
-      (outs GPR:$newdst, GPR:$newsrc), (ins GPR:$dst, GPR:$src, i32imm:$nreg),
-      NoItinerary,
-      [(set GPR:$newdst, GPR:$newsrc, (ARMmcopy GPR:$dst, GPR:$src, imm:$nreg))]>;
-}
-
 def ldrex_1 : PatFrag<(ops node:$ptr), (int_arm_ldrex node:$ptr), [{
   return cast<MemIntrinsicSDNode>(N)->getMemoryVT() == MVT::i8;
 }]>;
@@ -5315,6 +5304,10 @@ def Int_eh_sjlj_longjmp : PseudoInst<(outs), (ins GPR:$src, GPR:$scratch),
                          [(ARMeh_sjlj_longjmp GPR:$src, GPR:$scratch)]>,
                                 Requires<[IsARM]>;
 }
+
+let isBarrier = 1, hasSideEffects = 1, usesCustomInserter = 1 in
+def Int_eh_sjlj_setup_dispatch : PseudoInst<(outs), (ins), NoItinerary,
+            [(ARMeh_sjlj_setup_dispatch)]>;
 
 // eh.sjlj.dispatchsetup pseudo-instruction.
 // This pseudo is used for both ARM and Thumb. Any differences are handled when

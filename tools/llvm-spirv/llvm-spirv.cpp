@@ -114,14 +114,14 @@ convertLLVMToSPIRV() {
   LLVMContext Context;
 
   std::string Err;
-  DataStreamer *DS = getDataFileStreamer(InputFile, &Err);
+  auto DS = getDataFileStreamer(InputFile, &Err);
   if (!DS) {
     errs() << "Fails to open input file: " << Err;
     return -1;
   }
 
   ErrorOr<std::unique_ptr<Module>> MOrErr =
-      getStreamedBitcodeModule(InputFile, DS, Context);
+      getStreamedBitcodeModule(InputFile, std::move(DS), Context);
 
   if (std::error_code EC = MOrErr.getError()) {
     errs() << "Fails to load bitcode: " << EC.message();
@@ -233,14 +233,14 @@ regularizeLLVM() {
   LLVMContext Context;
 
   std::string Err;
-  DataStreamer *DS = getDataFileStreamer(InputFile, &Err);
+  auto DS = getDataFileStreamer(InputFile, &Err);
   if (!DS) {
     errs() << "Fails to open input file: " << Err;
     return -1;
   }
 
   ErrorOr<std::unique_ptr<Module>> MOrErr =
-      getStreamedBitcodeModule(InputFile, DS, Context);
+      getStreamedBitcodeModule(InputFile, std::move(DS), Context);
 
   if (std::error_code EC = MOrErr.getError()) {
     errs() << "Fails to load bitcode: " << EC.message();

@@ -460,6 +460,20 @@ struct MatchableInfo {
         TheDef->getValueAsBit("UseInstAsmMatchConverter")) {
   }
 
+  // Could remove this and the dtor if PointerUnion supported unique_ptr
+  // elements with a dynamic failure/assertion (like the one below) in the case
+  // where it was copied while being in an owning state.
+  MatchableInfo(const MatchableInfo &RHS)
+      : AsmVariantID(RHS.AsmVariantID), AsmString(RHS.AsmString),
+        TheDef(RHS.TheDef), DefRec(RHS.DefRec), ResOperands(RHS.ResOperands),
+        Mnemonic(RHS.Mnemonic), AsmOperands(RHS.AsmOperands),
+        RequiredFeatures(RHS.RequiredFeatures),
+        ConversionFnKind(RHS.ConversionFnKind),
+        HasDeprecation(RHS.HasDeprecation),
+        UseInstAsmMatchConverter(RHS.UseInstAsmMatchConverter) {
+    assert(!DefRec.is<const CodeGenInstAlias *>());
+  }
+
   ~MatchableInfo() {
     delete DefRec.dyn_cast<const CodeGenInstAlias*>();
   }
@@ -1249,8 +1263,8 @@ void AsmMatcherInfo::buildOperandClasses() {
     CI->Kind = ClassInfo::UserClass0 + Index;
 
     ListInit *Supers = Rec->getValueAsListInit("SuperClasses");
-    for (unsigned i = 0, e = Supers->getSize(); i != e; ++i) {
-      DefInit *DI = dyn_cast<DefInit>(Supers->getElement(i));
+    for (Init *I : Supers->getValues()) {
+      DefInit *DI = dyn_cast<DefInit>(I);
       if (!DI) {
         PrintError(Rec->getLoc(), "Invalid super class reference!");
         continue;

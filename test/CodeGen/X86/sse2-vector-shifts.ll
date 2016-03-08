@@ -1,4 +1,4 @@
-; RUN: llc < %s -mtriple=x86_64-pc-linux -mattr=+sse2 -mcpu=corei7 | FileCheck %s
+; RUN: llc < %s -mtriple=x86_64-pc-linux -mattr=+sse2 | FileCheck %s
 
 ; SSE2 Logical Shift Left
 
@@ -312,6 +312,7 @@ define <4 x i32> @shl_srl_v4i32(<4 x i32> %x) nounwind {
 }
 
 ; CHECK-LABEL: @shl_zext_srl_v4i32
+; CHECK: andps
 ; CHECK: andps
 ; CHECK-NEXT: ret
 define <4 x i32> @shl_zext_srl_v4i32(<4 x i16> %x) nounwind {

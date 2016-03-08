@@ -233,7 +233,8 @@ FullDependence::FullDependence(Instruction *Source, Instruction *Destination,
     : Dependence(Source, Destination), Levels(CommonLevels),
       LoopIndependent(PossiblyLoopIndependent) {
   Consistent = true;
-  DV = CommonLevels ? new DVEntry[CommonLevels] : nullptr;
+  if (CommonLevels)
+    DV = make_unique<DVEntry[]>(CommonLevels);
 }
 
 // The rest are simple getters that hide the implementation.
@@ -625,10 +626,9 @@ void Dependence::dump(raw_ostream &OS) const {
   OS << "!\n";
 }
 
-static AliasAnalysis::AliasResult underlyingObjectsAlias(AliasAnalysis *AA,
-                                                         const DataLayout &DL,
-                                                         const Value *A,
-                                                         const Value *B) {
+static AliasResult underlyingObjectsAlias(AliasAnalysis *AA,
+                                          const DataLayout &DL, const Value *A,
+                                          const Value *B) {
   const Value *AObj = GetUnderlyingObject(A, DL);
   const Value *BObj = GetUnderlyingObject(B, DL);
   return AA->alias(AObj, AA->getTypeStoreSize(AObj->getType()),
@@ -3267,8 +3267,8 @@ bool DependenceAnalysis::tryDelinearize(const SCEV *SrcSCEV,
 
   // First step: collect parametric terms in both array references.
   SmallVector<const SCEV *, 4> Terms;
-  SrcAR->collectParametricTerms(*SE, Terms);
-  DstAR->collectParametricTerms(*SE, Terms);
+  SE->collectParametricTerms(SrcAR, Terms);
+  SE->collectParametricTerms(DstAR, Terms);
 
   // Second step: find subscript sizes.
   SmallVector<const SCEV *, 4> Sizes;
@@ -3276,8 +3276,8 @@ bool DependenceAnalysis::tryDelinearize(const SCEV *SrcSCEV,
 
   // Third step: compute the access functions for each subscript.
   SmallVector<const SCEV *, 4> SrcSubscripts, DstSubscripts;
-  SrcAR->computeAccessFunctions(*SE, SrcSubscripts, Sizes);
-  DstAR->computeAccessFunctions(*SE, DstSubscripts, Sizes);
+  SE->computeAccessFunctions(SrcAR, SrcSubscripts, Sizes);
+  SE->computeAccessFunctions(DstAR, DstSubscripts, Sizes);
 
   // Fail when there is only a subscript: that's a linearized access function.
   if (SrcSubscripts.size() < 2 || DstSubscripts.size() < 2 ||
@@ -3365,16 +3365,16 @@ DependenceAnalysis::depends(Instruction *Src, Instruction *Dst,
 
   switch (underlyingObjectsAlias(AA, F->getParent()->getDataLayout(), DstPtr,
                                  SrcPtr)) {
-  case AliasAnalysis::MayAlias:
-  case AliasAnalysis::PartialAlias:
+  case MayAlias:
+  case PartialAlias:
     // cannot analyse objects if we don't understand their aliasing.
     DEBUG(dbgs() << "can't analyze may or partial alias\n");
     return make_unique<Dependence>(Src, Dst);
-  case AliasAnalysis::NoAlias:
+  case NoAlias:
     // If the objects noalias, they are distinct, accesses are independent.
     DEBUG(dbgs() << "no alias\n");
     return nullptr;
-  case AliasAnalysis::MustAlias:
+  case MustAlias:
     break; // The underlying objects alias; test accesses for dependence.
   }
 
@@ -3747,9 +3747,7 @@ DependenceAnalysis::depends(Instruction *Src, Instruction *Dst,
       return nullptr;
   }
 
-  auto Final = make_unique<FullDependence>(Result);
-  Result.DV = nullptr;
-  return std::move(Final);
+  return make_unique<FullDependence>(std::move(Result));
 }
 
 
@@ -3814,7 +3812,7 @@ const  SCEV *DependenceAnalysis::getSplitIteration(const Dependence &Dep,
   Value *SrcPtr = getPointerOperand(Src);
   Value *DstPtr = getPointerOperand(Dst);
   assert(underlyingObjectsAlias(AA, F->getParent()->getDataLayout(), DstPtr,
-                                SrcPtr) == AliasAnalysis::MustAlias);
+                                SrcPtr) == MustAlias);
 
   // establish loop nesting levels
   establishNestingLevels(Src, Dst);

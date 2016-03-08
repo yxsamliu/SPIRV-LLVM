@@ -37,7 +37,6 @@ public:
   void reset() override {
     SeenIdent = false;
     LocalCommons.clear();
-    BindingExplicitlySet.clear();
     BundleGroups.clear();
     MCObjectStreamer::reset();
   }
@@ -94,7 +93,7 @@ private:
   void fixSymbolsInTLSFixups(const MCExpr *expr);
 
   /// \brief Merge the content of the fragment \p EF into the fragment \p DF.
-  void mergeFragment(MCDataFragment *, MCEncodedFragmentWithFixups *);
+  void mergeFragment(MCDataFragment *, MCDataFragment *);
 
   bool SeenIdent;
 
@@ -105,8 +104,6 @@ private:
   };
 
   std::vector<LocalCommon> LocalCommons;
-
-  SmallPtrSet<MCSymbol *, 16> BindingExplicitlySet;
 
   /// BundleGroups - The stack of fragments holding the bundle-locked
   /// instructions.

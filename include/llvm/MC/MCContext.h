@@ -207,8 +207,9 @@ namespace llvm {
     bool AutoReset;
 
     MCSymbol *createSymbolImpl(const StringMapEntry<bool> *Name,
-                               bool IsTemporary);
-    MCSymbol *CreateSymbol(StringRef Name, bool AlwaysAddSuffix);
+                               bool CanBeUnnamed);
+    MCSymbol *createSymbol(StringRef Name, bool AlwaysAddSuffix,
+                           bool IsTemporary);
 
     MCSymbol *getOrCreateDirectionalLocalSymbol(unsigned LocalLabelVal,
                                                 unsigned Instance);
@@ -248,9 +249,10 @@ namespace llvm {
 
     /// Create and return a new assembler temporary symbol with a unique but
     /// unspecified name.
-    MCSymbol *createTempSymbol();
+    MCSymbol *createTempSymbol(bool CanBeUnnamed = true);
 
-    MCSymbol *createTempSymbol(const Twine &Name, bool AlwaysAddSuffix);
+    MCSymbol *createTempSymbol(const Twine &Name, bool AlwaysAddSuffix,
+                               bool CanBeUnnamed = true);
 
     /// Create the definition of a directional local symbol for numbered label
     /// (used for "1:" definitions).
@@ -271,7 +273,7 @@ namespace llvm {
     /// Gets a symbol that will be defined to the final stack offset of a local
     /// variable after codegen.
     ///
-    /// \param Idx - The index of a local variable passed to @llvm.frameescape.
+    /// \param Idx - The index of a local variable passed to @llvm.localescape.
     MCSymbol *getOrCreateFrameAllocSymbol(StringRef FuncName, unsigned Idx);
 
     MCSymbol *getOrCreateParentFrameOffsetSymbol(StringRef FuncName);
@@ -343,18 +345,18 @@ namespace llvm {
 
     MCSectionELF *getELFSection(StringRef Section, unsigned Type,
                                 unsigned Flags, unsigned EntrySize,
-                                const MCSymbol *Group, unsigned UniqueID,
+                                const MCSymbolELF *Group, unsigned UniqueID,
                                 const char *BeginSymName,
                                 const MCSectionELF *Associated);
 
     MCSectionELF *createELFRelSection(StringRef Name, unsigned Type,
                                       unsigned Flags, unsigned EntrySize,
-                                      const MCSymbol *Group,
+                                      const MCSymbolELF *Group,
                                       const MCSectionELF *Associated);
 
     void renameELFSection(MCSectionELF *Section, StringRef Name);
 
-    MCSectionELF *createELFGroupSection(const MCSymbol *Group);
+    MCSectionELF *createELFGroupSection(const MCSymbolELF *Group);
 
     MCSectionCOFF *getCOFFSection(StringRef Section, unsigned Characteristics,
                                   SectionKind Kind, StringRef COMDATSymName,
