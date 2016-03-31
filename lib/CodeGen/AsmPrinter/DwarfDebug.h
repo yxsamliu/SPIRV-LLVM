@@ -127,14 +127,14 @@ public:
   // Accessors.
   const DILocalVariable *getVariable() const { return Var; }
   const DILocation *getInlinedAt() const { return IA; }
-  const ArrayRef<const DIExpression *> getExpression() const { return Expr; }
+  ArrayRef<const DIExpression *> getExpression() const { return Expr; }
   void setDIE(DIE &D) { TheDIE = &D; }
   DIE *getDIE() const { return TheDIE; }
   void setDebugLocListIndex(unsigned O) { DebugLocListIndex = O; }
   unsigned getDebugLocListIndex() const { return DebugLocListIndex; }
   StringRef getName() const { return Var->getName(); }
   const MachineInstr *getMInsn() const { return MInsn; }
-  const ArrayRef<int> getFrameIndex() const { return FrameIndex; }
+  ArrayRef<int> getFrameIndex() const { return FrameIndex; }
 
   void addMMIEntry(const DbgVariable &V) {
     assert(DebugLocListIndex == ~0U && !MInsn && "not an MMI entry");
@@ -332,6 +332,9 @@ class DwarfDebug : public AsmPrinterHandler {
 
   /// Whether to use the GNU TLS opcode (instead of the standard opcode).
   bool UseGNUTLSOpcode;
+
+  /// Whether to emit DW_AT_[MIPS_]linkage_name.
+  bool UseLinkageNames;
 
   /// Version of dwarf we're emitting.
   unsigned DwarfVersion;
@@ -587,6 +590,9 @@ public:
   void setSymbolSize(const MCSymbol *Sym, uint64_t Size) override {
     SymSize[Sym] = Size;
   }
+
+  /// Returns whether to emit DW_AT_[MIPS_]linkage_name.
+  bool useLinkageNames() const { return UseLinkageNames; }
 
   /// Returns whether to use DW_OP_GNU_push_tls_address, instead of the
   /// standard DW_OP_form_tls_address opcode

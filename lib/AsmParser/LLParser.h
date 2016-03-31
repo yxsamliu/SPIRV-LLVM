@@ -59,7 +59,7 @@ namespace llvm {
 
     LLLexer::LocTy Loc;
     unsigned UIntVal;
-    FunctionType *FTy;
+    FunctionType *FTy = nullptr;
     std::string StrVal, StrVal2;
     APSInt APSIntVal;
     APFloat APFloatVal{0.0};
@@ -67,12 +67,12 @@ namespace llvm {
     std::unique_ptr<Constant *[]> ConstantStructElts;
 
     ValID() = default;
-    ValID(ValID &&RHS)
+    ValID(const ValID &RHS)
         : Kind(RHS.Kind), Loc(RHS.Loc), UIntVal(RHS.UIntVal), FTy(RHS.FTy),
-          StrVal(std::move(RHS.StrVal)), StrVal2(std::move(RHS.StrVal2)),
-          APSIntVal(std::move(RHS.APSIntVal)),
-          APFloatVal(std::move(RHS.APFloatVal)), ConstantVal(RHS.ConstantVal),
-          ConstantStructElts(std::move(RHS.ConstantStructElts)) {}
+          StrVal(RHS.StrVal), StrVal2(RHS.StrVal2), APSIntVal(RHS.APSIntVal),
+          APFloatVal(RHS.APFloatVal), ConstantVal(RHS.ConstantVal) {
+      assert(!RHS.ConstantStructElts);
+    }
 
     bool operator<(const ValID &RHS) const {
       if (Kind == t_LocalID || Kind == t_GlobalID)
@@ -106,6 +106,14 @@ namespace llvm {
     struct MDRef {
       SMLoc Loc;
       unsigned MDKind, MDSlot;
+    };
+
+    /// Indicates which operator an operand allows (for the few operands that
+    /// may only reference a certain operator).
+    enum OperatorConstraint {
+      OC_None = 0,  // No constraint
+      OC_CatchPad,  // Must be CatchPadInst
+      OC_CleanupPad // Must be CleanupPadInst
     };
 
     SmallVector<Instruction*, 64> InstsWithTBAATag;
@@ -146,7 +154,7 @@ namespace llvm {
           Slots(Slots), BlockAddressPFS(nullptr) {}
     bool Run();
 
-    bool parseStandaloneConstantValue(Constant *&C);
+    bool parseStandaloneConstantValue(Constant *&C, const SlotMapping *Slots);
 
     LLVMContext &getContext() { return Context; }
 
@@ -158,6 +166,10 @@ namespace llvm {
     bool TokError(const Twine &Msg) const {
       return Error(Lex.getLoc(), Msg);
     }
+
+    /// Restore the internal name and slot mappings using the mappings that
+    /// were created at an earlier parsing stage.
+    void restoreParsingState(const SlotMapping *Slots);
 
     /// GetGlobalVal - Get a value with the specified name or ID, creating a
     /// forward reference record if needed.  This can return null if the value
@@ -214,6 +226,8 @@ namespace llvm {
       Loc = Lex.getLoc();
       return ParseUInt64(Val);
     }
+
+    bool ParseStringAttribute(AttrBuilder &B);
 
     bool ParseTLSModel(GlobalVariable::ThreadLocalMode &TLM);
     bool ParseOptionalThreadLocal(GlobalVariable::ThreadLocalMode &TLM);
@@ -323,8 +337,10 @@ namespace llvm {
       /// GetVal - Get a value with the specified name or ID, creating a
       /// forward reference record if needed.  This can return null if the value
       /// exists but does not have the right type.
-      Value *GetVal(const std::string &Name, Type *Ty, LocTy Loc);
-      Value *GetVal(unsigned ID, Type *Ty, LocTy Loc);
+      Value *GetVal(const std::string &Name, Type *Ty, LocTy Loc,
+                    OperatorConstraint OC = OC_None);
+      Value *GetVal(unsigned ID, Type *Ty, LocTy Loc,
+                    OperatorConstraint OC = OC_None);
 
       /// SetInstName - After an instruction is parsed and inserted into its
       /// basic block, this installs its name.
@@ -346,12 +362,15 @@ namespace llvm {
     };
 
     bool ConvertValIDToValue(Type *Ty, ValID &ID, Value *&V,
-                             PerFunctionState *PFS);
+                             PerFunctionState *PFS,
+                             OperatorConstraint OC = OC_None);
 
     bool parseConstantValue(Type *Ty, Constant *&C);
-    bool ParseValue(Type *Ty, Value *&V, PerFunctionState *PFS);
-    bool ParseValue(Type *Ty, Value *&V, PerFunctionState &PFS) {
-      return ParseValue(Ty, V, &PFS);
+    bool ParseValue(Type *Ty, Value *&V, PerFunctionState *PFS,
+                    OperatorConstraint OC = OC_None);
+    bool ParseValue(Type *Ty, Value *&V, PerFunctionState &PFS,
+                    OperatorConstraint OC = OC_None) {
+      return ParseValue(Ty, V, &PFS, OC);
     }
     bool ParseValue(Type *Ty, Value *&V, LocTy &Loc,
                     PerFunctionState &PFS) {
@@ -386,6 +405,10 @@ namespace llvm {
                             PerFunctionState &PFS,
                             bool IsMustTailCall = false,
                             bool InVarArgsFunc = false);
+
+    bool
+    ParseOptionalOperandBundles(SmallVectorImpl<OperandBundleDef> &BundleList,
+                                PerFunctionState &PFS);
 
     bool ParseExceptionArgs(SmallVectorImpl<Value *> &Args,
                             PerFunctionState &PFS);
@@ -456,6 +479,7 @@ namespace llvm {
     bool ParseTerminatePad(Instruction *&Inst, PerFunctionState &PFS);
     bool ParseCleanupPad(Instruction *&Inst, PerFunctionState &PFS);
     bool ParseCatchEndPad(Instruction *&Inst, PerFunctionState &PFS);
+    bool ParseCleanupEndPad(Instruction *&Inst, PerFunctionState &PFS);
 
     bool ParseArithmetic(Instruction *&I, PerFunctionState &PFS, unsigned Opc,
                          unsigned OperandType);

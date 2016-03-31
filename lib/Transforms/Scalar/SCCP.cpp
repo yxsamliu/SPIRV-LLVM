@@ -24,6 +24,7 @@
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/Statistic.h"
+#include "llvm/Analysis/GlobalsModRef.h"
 #include "llvm/Analysis/ConstantFolding.h"
 #include "llvm/Analysis/TargetLibraryInfo.h"
 #include "llvm/IR/CallSite.h"
@@ -479,6 +480,11 @@ private:
   void visitExtractValueInst(ExtractValueInst &EVI);
   void visitInsertValueInst(InsertValueInst &IVI);
   void visitLandingPadInst(LandingPadInst &I) { markAnythingOverdefined(&I); }
+  void visitCleanupPadInst(CleanupPadInst &CPI) { markAnythingOverdefined(&CPI); }
+  void visitCatchPadInst(CatchPadInst &CPI) {
+    markAnythingOverdefined(&CPI);
+    visitTerminatorInst(CPI);
+  }
 
   // Instructions that cannot be folded away.
   void visitStoreInst     (StoreInst &I);
@@ -1506,6 +1512,7 @@ namespace {
   struct SCCP : public FunctionPass {
     void getAnalysisUsage(AnalysisUsage &AU) const override {
       AU.addRequired<TargetLibraryInfoWrapperPass>();
+      AU.addPreserved<GlobalsAAWrapperPass>();
     }
     static char ID; // Pass identification, replacement for typeid
     SCCP() : FunctionPass(ID) {
@@ -1545,7 +1552,7 @@ static void DeleteInstructionInBlock(BasicBlock *BB) {
     Instruction *Inst = --I;
     if (!Inst->use_empty())
       Inst->replaceAllUsesWith(UndefValue::get(Inst->getType()));
-    if (isa<LandingPadInst>(Inst)) {
+    if (Inst->isEHPad()) {
       EndInst = Inst;
       continue;
     }
@@ -1791,10 +1798,9 @@ bool IPSCCP::runOnModule(Module &M) {
         MadeChanges = true;
 
         TerminatorInst *TI = BB->getTerminator();
-        for (unsigned i = 0, e = TI->getNumSuccessors(); i != e; ++i) {
-          BasicBlock *Succ = TI->getSuccessor(i);
+        for (BasicBlock *Succ : TI->successors()) {
           if (!Succ->empty() && isa<PHINode>(Succ->begin()))
-            TI->getSuccessor(i)->removePredecessor(BB);
+            Succ->removePredecessor(BB);
         }
         if (!TI->use_empty())
           TI->replaceAllUsesWith(UndefValue::get(TI->getType()));

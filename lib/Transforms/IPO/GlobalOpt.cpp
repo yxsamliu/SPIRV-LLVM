@@ -2504,6 +2504,10 @@ bool Evaluator::EvaluateBlock(BasicBlock::iterator CurInst,
           // Continue even if we do nothing.
           ++CurInst;
           continue;
+        } else if (II->getIntrinsicID() == Intrinsic::assume) {
+          DEBUG(dbgs() << "Skipping assume intrinsic.\n");
+          ++CurInst;
+          continue;
         }
 
         DEBUG(dbgs() << "Unknown intrinsic. Can not evaluate.\n");
@@ -2708,7 +2712,8 @@ static bool EvaluateStaticConstructor(Function *F, const DataLayout &DL,
 }
 
 static int compareNames(Constant *const *A, Constant *const *B) {
-  return (*A)->getName().compare((*B)->getName());
+  return (*A)->stripPointerCasts()->getName().compare(
+      (*B)->stripPointerCasts()->getName());
 }
 
 static void setUsedInitializer(GlobalVariable &V,
